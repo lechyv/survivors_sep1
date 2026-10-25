@@ -1,0 +1,14 @@
+Week 8
+I need a function for
+
+-Player "spawning" in the centre of the screen when game starts (for now draw function, but a png may be chosen to represent in the future)
+
+-Swarm/Enemies (for now draw function, but a png may be chosen to represent in the future) spawning at the edge of the screen
+
+-A randomizer for enemies spawning locations within a set interval of time (depending on difficulty; this parameter is subjected to change) [Keep spawning until "timer" ends)
+
+-Player controls: to be defined as standard W-A-S-D inputs, with the addition of a "dash mechanic" when pressing spacebar
+
+-Movement of player and swarm to be updated in game in real time, and using vector calculations.
+
+Each function should be separated clearly and distinctly to be placed as a puzzle piece towards the whole game.
