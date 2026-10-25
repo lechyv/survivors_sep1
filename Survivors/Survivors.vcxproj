@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0c798f89-fba1-4906-8b9d-fe09eb8ce863}</ProjectGuid>
+    <ProjectGuid>{3071A392-103B-A6CC-CFBB-E5CFF616CBD9}</ProjectGuid>
     <RootNamespace>Survivors</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
