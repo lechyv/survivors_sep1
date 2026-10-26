@@ -3,9 +3,11 @@
 #include "cprocessing.h"
 #include "utils.h"
 #include "game.h"
+#include "Swarm.h"
 
 CP_Font myFont;
 float playX, playY, quitX, quitY, sizeX, sizeY;
+int selectedDifficulty = 2;
 
 void Main_Menu_Init(void)
 {

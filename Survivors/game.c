@@ -2,6 +2,7 @@
 #include "mainmenu.h"
 #include "game.h"
 #include "math.h"
+#include "Swarm.h"
 /* ---------- Player state ---------- */
 float playerX, playerY;     // arrow position
 float speed;                // normal speed of movement
@@ -15,6 +16,8 @@ float dashCooldownTimer;    // seconds left until the next dash is allowed
 
 /* ---------- Player controls ---------- */
 
+
+
 // Space: start a dash if off cooldown and not already dashing
 void Player_HandleDashInput(void)
 {
@@ -25,9 +28,10 @@ void Player_HandleDashInput(void)
 	}
 }
 
+
 // Moves the arrow forward in the direction it is facing during a dash
 void Player_Dash(void)
-{ //step is a variable that tracks how much distance remains on your dash
+{//step is a variable that tracks how much distance remains on your dash
   //and makes sure any value you set for dashspeed does not overshoot. 
   //since once you preess spacebar, dashremaining = dashdistance,
   //it constantly gets updated frame by frame and decreases its pixels left
@@ -35,55 +39,44 @@ void Player_Dash(void)
   // it may overshoot when dashremaing is let's say 10pixels left and dashspeed is 20pixels.
   // this would of course cause the last instance of dash frame to exceed the distance by 10 pixels.
   // hence this is where step is assigned dash remaining, so the last frame instance is 10 pixels, instead of 20pixels.
-
 	float step = dashSpeed;
 	if (step > dashRemaining)
 	{
-		step = dashRemaining;   
+		step = dashRemaining;
 	}
 
-	if (orangeArrow == 0.0f)
-	{
-		playerX += step;
-	}
-	else if (orangeArrow == 90.0f)
-	{
-		playerY += step;
-	}
-	else if (orangeArrow == 180.0f)
-	{
-		playerX -= step;
-	}
-	else if (orangeArrow == -90.0f)
-	{
-		playerY -= step;
-	}
+	// move along whatever angle the arrow is facing (works for diagonals too)
+	float radians = orangeArrow * 3.14159265f / 180.0f;
+	playerX += cosf(radians) * step;
+	playerY += sinf(radians) * step;
 
 	dashRemaining -= step;
 }
-
 // WASD: normal movement and facing direction
+// WASD: normal movement and facing direction (8 directions)
 void Player_Move(void)
 {
-	if (CP_Input_KeyDown(KEY_W))
+	float dx = 0.0f;
+	float dy = 0.0f;
+
+	if (CP_Input_KeyDown(KEY_W)) dy -= 1.0f;
+	if (CP_Input_KeyDown(KEY_S)) dy += 1.0f;
+	if (CP_Input_KeyDown(KEY_A)) dx -= 1.0f;
+	if (CP_Input_KeyDown(KEY_D)) dx += 1.0f;
+
+	// only move if at least one direction is held
+	if (dx != 0.0f || dy != 0.0f)
 	{
-		playerY -= speed;
-		orangeArrow = -90.0f;
-	}
-	else if (CP_Input_KeyDown(KEY_S))
-	{
-		playerY += speed;
-		orangeArrow = 90.0f;
-	}
-	else if (CP_Input_KeyDown(KEY_A))
-	{
-		playerX -= speed;
-		orangeArrow = 180.0f;
-	}
-	else if (CP_Input_KeyDown(KEY_D))
-	{
-		playerX += speed;
-		orangeArrow = 0.0f;
+		// normalize so diagonal movement isn't faster than straight movement
+		float length = sqrtf(dx * dx + dy * dy);
+		dx /= length;
+		dy /= length;
+
+		playerX += dx * speed;
+		playerY += dy * speed;
+
+		// arrow angle in degrees (W = -90, S = 90, A = 180, D = 0, diagonals in between)
+		orangeArrow = atan2f(dy, dx) * 180.0f / 3.14159265f;
 	}
 }
 
@@ -255,6 +248,7 @@ void bullet_draw(void)
 
 void Game_Init(void)
 {
+	Swarm_Init(selectedDifficulty); //select difficulty (placeholder for now) include "mainmenu.c" for this
 	// arrow position on screen (spawn point)
 	playerX = CP_System_GetWindowWidth() / 3.0f;
 	playerY = CP_System_GetWindowHeight() / 6.0f;
@@ -280,6 +274,7 @@ void Game_Update(void)
 	// black background
 	CP_Graphics_ClearBackground(CP_Color_Create(0, 0, 0, 255));
 
+	Swarm_Update(CP_Vector_Set(playerX, playerY));
 	Player_Update();
 	bullet_update();
 	Player_Draw();
