@@ -248,7 +248,7 @@ void bullet_draw(void)
 
 void Game_Init(void)
 {
-	Swarm_Init(selectedDifficulty); //select difficulty (placeholder for now) include "mainmenu.c" for this
+	//Swarm_Init(selectedDifficulty); //select difficulty (placeholder for now) include "mainmenu.c" for this
 	// arrow position on screen (spawn point)
 	playerX = CP_System_GetWindowWidth() / 3.0f;
 	playerY = CP_System_GetWindowHeight() / 6.0f;
