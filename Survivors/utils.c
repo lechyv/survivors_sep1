@@ -39,3 +39,21 @@ int IsCircleClicked(float circle_center_x, float circle_center_y, float diameter
 
 }
 
+int IsAreaHovered(float area_center_x, float area_center_y, float area_width, float area_height)
+{
+    float mouse_x = CP_Input_GetMouseX();
+    float mouse_y = CP_Input_GetMouseY();
+    float half_w = area_width / 2.0f;
+    float half_h = area_height / 2.0f;
+
+    if (mouse_x >= area_center_x - half_w &&
+        mouse_x <= area_center_x + half_w &&
+        mouse_y >= area_center_y - half_h &&
+        mouse_y <= area_center_y + half_h)
+    {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
