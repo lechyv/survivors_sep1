@@ -92,3 +92,28 @@ void Swarm_Update(CP_Vector playerPos)
     }
     Move_Enemies(playerPos);
 }
+
+int Swarm_KillEnemiesTouching(float x, float y, float radius, float* killedX, float* killedY, int maxKilled)
+{
+    float touchDistance = radius + ENEMY_SIZE / 2.0f; /* ENEMY_SIZE is a diameter*/
+    int killed = 0;
+    int i = 0;
+
+	while (i < MAX_ENEMIES)
+	{
+		if (enemyActive[i] == 1 && killed < maxKilled)
+		{
+			float dx = enemyPos[i].x - x;
+			float dy = enemyPos[i].y - y;
+			if ((dx * dx + dy * dy) <= (touchDistance * touchDistance))
+			{
+				enemyActive[i] = 0; /* enemy is dead */
+				killedX[killed] = enemyPos[i].x; /* remember where it died*/
+				killedY[killed] = enemyPos[i].y;
+                killed += 1;
+			}
+		}
+		i += 1;
+	}
+	return killed;
+}
