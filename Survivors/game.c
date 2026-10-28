@@ -114,10 +114,10 @@ void Player_Draw(void)
 }
 /*Combat and Damage*/
 #define max_bullets 128
-#define bullet_speed 600.0f
+#define bullet_speed 200.0f
 #define bullet_radius 4.0f
 #define bullet_damage 10.0f
-#define bullet_lifetime 2.0f	//seconds before the bullet disappears
+#define bullet_lifetime 1.5f	//seconds before the bullet disappears
 #define player_radius 20.0f
 #define player_health_max 100.0f
 
@@ -247,6 +247,51 @@ void bullet_draw(void)
 		}
 	}
 }
+/*-----------Starting Drone---------*/
+#define drone_size 16.0f
+#define drone_distance 60.0f
+#define drone_orbit_speed 1.5f
+#define drone_fire_rate 1.5f
+#define drone_range 350.0f
+
+float droneX, droneY;
+float droneAngle;
+float droneFireTimer;
+
+void drone_init(void)
+{
+	droneAngle = 0.0f;
+	droneFireTimer = 0.0f;
+}
+
+void drone_update(void)
+{
+	float dt = CP_System_GetDt();
+	droneAngle = droneAngle + drone_orbit_speed * dt;
+	droneX = playerX + cosf(droneAngle) * drone_distance;
+	droneY = playerY + sinf(droneAngle) * drone_distance;
+
+	droneFireTimer = droneFireTimer - dt;
+	if (droneFireTimer > 0.0f)	// this restricts the fire rate so that it does not shoot constantly
+	{
+		return;
+	}
+
+	CP_Vector target;
+	if (Swarm_GetNearest(droneX, droneY, drone_range, &target))
+	{
+		bullet_fire(droneX, droneY, target.x, target.y);
+		droneFireTimer = 1.0f / drone_fire_rate;
+	}
+
+}
+
+void drone_draw(void)
+{
+	CP_Settings_NoStroke();
+	CP_Settings_Fill(CP_Color_Create(80, 220, 170, 244));
+	CP_Graphics_DrawCircle(droneX, droneY, drone_size);
+}
 
 
 /*Game state*/
@@ -283,6 +328,7 @@ void Game_Update(void)
 
 	Swarm_Update(CP_Vector_Set(playerX, playerY));
 	Player_Update();
+	drone_update();
 	bullet_update();
 	// coin drop: kill enemies touching the player, drop a coin where each died,
     // then pick up any coin the player is touching
@@ -290,6 +336,7 @@ void Game_Update(void)
 	Coins_Update(playerX, playerY, player_radius);
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
+	drone_draw();
 	bullet_draw();
 	Coins_DrawCounter();   // coin drop: "Coins: N" in the top-left corner
 
