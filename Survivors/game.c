@@ -3,6 +3,7 @@
 #include "game.h"
 #include "math.h"
 #include "Swarm.h"
+#include "coin-drop.h"
 /* ---------- Player state ---------- */
 float playerX, playerY;     // arrow position
 float speed;                // normal speed of movement
@@ -267,6 +268,8 @@ void Game_Init(void)
 	dashCooldownTimer = 0.0f;
 
 	combat_init();
+
+	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 }
 
 void Game_Update(void)
@@ -277,8 +280,14 @@ void Game_Update(void)
 	Swarm_Update(CP_Vector_Set(playerX, playerY));
 	Player_Update();
 	bullet_update();
+	// coin drop: kill enemies touching the player, drop a coin where each died,
+    // then pick up any coin the player is touching
+	Coins_KillAndDrop(playerX, playerY, player_radius);
+	Coins_Update(playerX, playerY, player_radius);
+	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
 	bullet_draw();
+	Coins_DrawCounter();   // coin drop: "Coins: N" in the top-left corner
 
 	//program termination
 	if (CP_Input_KeyTriggered(KEY_Q))
