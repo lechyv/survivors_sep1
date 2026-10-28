@@ -4,21 +4,20 @@
 #include "math.h"
 #include "Swarm.h"
 #include "coin-drop.h"
-/* ---------- Player state ---------- */
+/*Player state*/
 float playerX, playerY;     // arrow position
-float speed;                // normal speed of movement
+float speed;                // player (arrow) speed
 float orangeArrow;          // arrow rotation angle (degrees)
 
 float dashSpeed;            // speed while dashing
-float dashDistance;         // total distance of one dash
+float dashDistance;         // distance of dash
 float dashRemaining;        // distance left in the current dash (0 = not dashing)
 float dashCooldown;         // seconds between dashes
 float dashCooldownTimer;    // seconds left until the next dash is allowed
 
-/* ---------- Player controls ---------- */
+#define PI 3.14159265f
 
-
-
+/*Player controls*/
 // Space: start a dash if off cooldown and not already dashing
 void Player_HandleDashInput(void)
 {
@@ -29,17 +28,15 @@ void Player_HandleDashInput(void)
 	}
 }
 
-
-// Moves the arrow forward in the direction it is facing during a dash
 void Player_Dash(void)
-{//step is a variable that tracks how much distance remains on your dash
-  //and makes sure any value you set for dashspeed does not overshoot. 
-  //since once you preess spacebar, dashremaining = dashdistance,
-  //it constantly gets updated frame by frame and decreases its pixels left
-  //because step is assigned to dashspeed to frame by frame smooth out the dash effect,
-  // it may overshoot when dashremaing is let's say 10pixels left and dashspeed is 20pixels.
-  // this would of course cause the last instance of dash frame to exceed the distance by 10 pixels.
-  // hence this is where step is assigned dash remaining, so the last frame instance is 10 pixels, instead of 20pixels.
+{/*step is a variable that tracks how much distance remains on your dash
+  and makes sure any value you set for dashspeed does not overshoot. 
+  since once you preess spacebar, dashremaining = dashdistance,
+  it constantly gets updated frame by frame and decreases its pixels left
+  because step is assigned to dashspeed to frame by frame smooth out the dash effect,
+  it may overshoot when dashremaing is let's say 10pixels left and dashspeed is 20pixels.
+  this would of course cause the last instance of dash frame to exceed the distance by 10 pixels.
+  hence this is where step is assigned dash remaining, so the last frame instance is 10 pixels, instead of 20pixels. */
 	float step = dashSpeed;
 	if (step > dashRemaining)
 	{
@@ -47,13 +44,17 @@ void Player_Dash(void)
 	}
 
 	// move along whatever angle the arrow is facing (works for diagonals too)
-	float radians = orangeArrow * 3.14159265f / 180.0f;
+	float radians = orangeArrow * PI / 180.0f;
+	/*For the next 2 lines of code, cosf(horizontal axis) and sinf(vertical axis)
+	determine where the player is facing in the range of 1 to -1. Picture the dash as a 
+	ray equation: P = O + td whereby playerX and playerY are starting point O, and step 
+	acts as a scalar multiple for td.*/
 	playerX += cosf(radians) * step;
 	playerY += sinf(radians) * step;
 
 	dashRemaining -= step;
 }
-// WASD: normal movement and facing direction
+
 // WASD: normal movement and facing direction (8 directions)
 void Player_Move(void)
 {
@@ -77,16 +78,18 @@ void Player_Move(void)
 		playerY += dy * speed;
 
 		// arrow angle in degrees (W = -90, S = 90, A = 180, D = 0, diagonals in between)
-		orangeArrow = atan2f(dy, dx) * 180.0f / 3.14159265f;
+		orangeArrow = atan2f(dy, dx) * 180.0f / PI;
 	}
 }
 
-//  player function
+//player function
  void Player_Update(void)
 {
 	// tick the dash cooldown down
 	if (dashCooldownTimer > 0.0f)
 	{
+
+
 		dashCooldownTimer -= CP_System_GetDt();
 	}
 
@@ -98,7 +101,8 @@ void Player_Move(void)
 	}
 	else
 	{
-		Player_Move();
+		Player_Move(); //player is always in this same unless dashing. Hence when dashing, the last known position of orangearrow is passed to Player_Dash
+
 	}
 }
 
@@ -108,7 +112,7 @@ void Player_Draw(void)
 	CP_Settings_Fill(CP_Color_Create(255, 165, 0, 255));
 	CP_Graphics_DrawTriangleAdvanced(playerX + 30, playerY, playerX - 15, playerY - 25, playerX - 15, playerY + 25, orangeArrow);
 }
-/* ---------- Combat and Damage ---------- */
+/*Combat and Damage*/
 #define max_bullets 128
 #define bullet_speed 600.0f
 #define bullet_radius 4.0f
@@ -245,11 +249,11 @@ void bullet_draw(void)
 }
 
 
-/* ---------- Game state ---------- */
+/*Game state*/
 
 void Game_Init(void)
 {
-	//Swarm_Init(selectedDifficulty); //select difficulty (placeholder for now) include "mainmenu.c" for this
+	//have a function for difficulty (include mainmenu.h in this file
 	// arrow position on screen (spawn point)
 	playerX = CP_System_GetWindowWidth() / 3.0f;
 	playerY = CP_System_GetWindowHeight() / 6.0f;
