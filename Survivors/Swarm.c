@@ -11,6 +11,8 @@ static int enemyActive[MAX_ENEMIES];
 static float spawnInterval = 1.0f;
 static float spawnTimer = 0.0f;
 
+float bullet_check_if_hit(float x, float y, float radius);
+
 /* Difficulty -> spawn interval (seconds between spawns) */
 static void Set_Difficulty(int difficulty)
 {
@@ -68,6 +70,12 @@ static void Move_Enemies(CP_Vector playerPos)
     {
         if (enemyActive[i] == 0) continue;
 
+        if (bullet_check_if_hit(enemyPos[i].x, enemyPos[i].y, ENEMY_SIZE / 2.0f) > 0.0f)
+        {
+            enemyActive[i] = 0;
+            continue;
+        }
+
         CP_Vector dir = CP_Vector_Normalize(CP_Vector_Subtract(playerPos, enemyPos[i]));
         enemyPos[i] = CP_Vector_Add(enemyPos[i], CP_Vector_Scale(dir, ENEMY_SPEED * dt));
         Draw_Enemy(enemyPos[i].x, enemyPos[i].y);
@@ -80,6 +88,28 @@ void Swarm_Init(int difficulty)
     Set_Difficulty(difficulty);
     spawnTimer = 0.0f;
     for (int i = 0; i < MAX_ENEMIES; i++) enemyActive[i] = 0;
+}
+
+int Swarm_GetNearest(float x, float y, float range, CP_Vector* target)
+{
+    int found = 0;
+    float nearestDistance = range;
+
+    for (int i = 0; i < MAX_ENEMIES; i++)
+    {
+        if (enemyActive[i] == 0)
+        {
+            continue;
+        }
+        float distance = CP_Math_Distance(x, y, enemyPos[i].x, enemyPos[i].y);
+        if (distance < nearestDistance)
+        {
+            nearestDistance = distance;
+            *target = enemyPos[i];
+            found = 1;
+        }
+    }
+    return found;
 }
 
 void Swarm_Update(CP_Vector playerPos)
