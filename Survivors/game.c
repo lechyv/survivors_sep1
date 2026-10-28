@@ -317,7 +317,7 @@ void Game_Init(void)
 	dashCooldownTimer = 0.0f;
 
 	combat_init();
-
+	drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 }
 
