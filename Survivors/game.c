@@ -315,7 +315,9 @@ void Game_Init(void)
 	dashRemaining = 0.0f;
 	dashCooldown = 3.0f;
 	dashCooldownTimer = 0.0f;
-
+	
+	//PLEASE DONT DELETE THIS UNLESS YOU ARE DONE WITH DIFFICULTY HANDLING
+	Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
 	combat_init();
 	drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
