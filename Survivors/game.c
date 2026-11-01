@@ -4,6 +4,10 @@
 #include "math.h"
 #include "Swarm.h"
 #include "coin-drop.h"
+#include "hud.h"
+
+extern int coinCount;
+
 /*Player state*/
 float playerX, playerY;     // arrow position
 float speed;                // player (arrow) speed
@@ -340,7 +344,7 @@ void Game_Update(void)
 	Player_Draw();
 	drone_draw();
 	bullet_draw();
-	Coins_DrawCounter();   // coin drop: "Coins: N" in the top-left corner
+	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
 
 	//program termination
 	if (CP_Input_KeyTriggered(KEY_Q))
