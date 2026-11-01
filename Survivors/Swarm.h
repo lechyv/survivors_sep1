@@ -21,3 +21,4 @@ Kills every enemy touching the circle at (x, y) with the given radius.
 */
 
 int Swarm_GetNearest(float x, float y, float range, CP_Vector* target);
+int Swarm_NumOfEnemiesTouching(float x, float y, float radius);

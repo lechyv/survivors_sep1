@@ -120,10 +120,13 @@ void Player_Draw(void)
 #define max_bullets 128
 #define bullet_speed 200.0f
 #define bullet_radius 4.0f
-#define bullet_damage 10.0f
 #define bullet_lifetime 1.5f	//seconds before the bullet disappears
 #define player_radius 20.0f
 #define player_health_max 100.0f
+#define enemy_contact_damage 10.0f
+
+#define basic_drone_bullet_damage 10.0f
+#define machine_gun_drone_bullet_damage 5.0f
 
 int bulletActive[max_bullets];
 float bulletX[max_bullets];
@@ -131,7 +134,7 @@ float bulletY[max_bullets];
 float bulletXv[max_bullets];	// velocity
 float bulletYv[max_bullets];
 float bulletAge[max_bullets];	//seconds since bullet fired
-
+float bulletDamage[max_bullets];
 float player_health;
 
 // collision
@@ -156,6 +159,7 @@ void combat_init(void)
 	for (int i = 0; i < max_bullets; i++)
 	{
 		bulletActive[i] = 0;
+		bulletDamage[i] = 0.0f;
 	}
 }
 
@@ -176,7 +180,7 @@ void combat_damage_player(float amount)
 }
 
 //drone damage
-void bullet_fire(float fromX, float fromY, float targetX, float targetY)
+void bullet_fire(float fromX, float fromY, float targetX, float targetY, float damage)
 {
 	float dx = targetX - fromX;
 	float dy = targetY - fromY;
@@ -196,7 +200,8 @@ void bullet_fire(float fromX, float fromY, float targetX, float targetY)
 			bulletY[i] = fromY;
 			bulletXv[i] = (dx / distance) * bullet_speed;
 			bulletYv[i] = (dy / distance) * bullet_speed;
-			bulletAge[i] = 0;
+			bulletAge[i] = 0.0f;
+			bulletDamage[i] = damage;
 			break;
 		}
 	}
@@ -233,7 +238,7 @@ float bullet_check_if_hit(float x, float y, float radius)
 			if (bulletActive[i] == 1 && combat_circles_touch(bulletX[i], bulletY[i], bullet_radius, x, y, radius))
 			{
 				bulletActive[i] = 0;
-				damage = damage + bullet_damage;
+				damage = damage + bulletDamage[i];
 			}
 		}
 	return damage;
@@ -251,7 +256,24 @@ void bullet_draw(void)
 		}
 	}
 }
-/*-----------Starting Drone---------*/
+
+void healthbar_draw(void)
+{
+	float bar_width = 200.0f;
+	float bar_height = 20.0f;
+	float x = 20.0f;
+	float y = (float)CP_System_GetWindowHeight() - 40.0f;
+	float fill = player_health / player_health_max;
+
+	CP_Settings_NoStroke();
+	CP_Settings_RectMode(CP_POSITION_CORNER);
+	CP_Settings_Fill(CP_Color_Create(60, 60, 60, 255));
+	CP_Graphics_DrawRect(x, y, bar_width, bar_height);
+	CP_Settings_Fill(CP_Color_Create(220, 40, 40, 255));
+	CP_Graphics_DrawRect(x, y, bar_width * fill, bar_height);
+	CP_Settings_RectMode(CP_POSITION_CENTER);
+}
+//Starting Drone
 #define drone_size 16.0f
 #define drone_distance 60.0f
 #define drone_orbit_speed 1.5f
@@ -284,7 +306,7 @@ void drone_update(void)
 	CP_Vector target;
 	if (Swarm_GetNearest(droneX, droneY, drone_range, &target))
 	{
-		bullet_fire(droneX, droneY, target.x, target.y);
+		bullet_fire(droneX, droneY, target.x, target.y, basic_drone_bullet_damage);
 		droneFireTimer = 1.0f / drone_fire_rate;
 	}
 
@@ -295,6 +317,56 @@ void drone_draw(void)
 	CP_Settings_NoStroke();
 	CP_Settings_Fill(CP_Color_Create(80, 220, 170, 244));
 	CP_Graphics_DrawCircle(droneX, droneY, drone_size);
+}
+
+//machine gun drone
+
+#define machine_gun_drone_size 14.0f
+#define machine_gun_drone_distance 90.0f
+#define machine_gun_drone_orbit_speed 1.2f
+#define machine_gun_drone_fire_rate 6.0f
+#define machine_gun_drone_range 350.0f
+
+float MGDroneX, MGDroneY;
+float MGDroneAngle;
+float MGDroneFireTimer;
+
+void machine_gun_drone_init(void)
+{
+	MGDroneAngle = 3.14f;
+	MGDroneFireTimer = 0.0f;
+}
+
+void machine_gun_drone_update(void)
+{
+	float dt = CP_System_GetDt();
+
+	MGDroneAngle = MGDroneAngle + machine_gun_drone_orbit_speed * dt;
+
+	MGDroneX = playerX + cosf(MGDroneAngle) * machine_gun_drone_distance;
+	MGDroneY = playerY + sinf(MGDroneAngle) * machine_gun_drone_distance;
+
+	MGDroneFireTimer = MGDroneFireTimer - dt;
+
+	if (MGDroneFireTimer > 0.0f)
+	{
+		return;
+	}
+
+	CP_Vector target;
+
+	if (Swarm_GetNearest(MGDroneX, MGDroneY, machine_gun_drone_range, &target))
+	{
+		bullet_fire(MGDroneX, MGDroneY, target.x, target.y, machine_gun_drone_bullet_damage);
+		MGDroneFireTimer = 1.0f / machine_gun_drone_fire_rate;
+	}
+}
+
+void machine_gun_drone_draw(void)
+{
+	CP_Settings_NoStroke();
+	CP_Settings_Fill(CP_Color_Create(255, 180, 50, 255));
+	CP_Graphics_DrawCircle(MGDroneX, MGDroneY, machine_gun_drone_size);
 }
 
 
@@ -324,6 +396,7 @@ void Game_Init(void)
 	Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
 	combat_init();
 	drone_init();
+	machine_gun_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 }
 
@@ -335,7 +408,12 @@ void Game_Update(void)
 	Swarm_Update(CP_Vector_Set(playerX, playerY));
 	Player_Update();
 	drone_update();
+	machine_gun_drone_update();
 	bullet_update();
+
+	int enemies_touching_player = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius);
+	combat_damage_player(enemies_touching_player * enemy_contact_damage);
+	combat_damage_player(Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius));
 	// coin drop: kill enemies touching the player, drop a coin where each died,
     // then pick up any coin the player is touching
 	Coins_KillAndDrop(playerX, playerY, player_radius);
@@ -343,8 +421,14 @@ void Game_Update(void)
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
 	drone_draw();
+	machine_gun_drone_draw();
 	bullet_draw();
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
+
+	if (player_health <= 0.0f)
+	{
+		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
+	}
 
 	//program termination
 	if (CP_Input_KeyTriggered(KEY_Q))
