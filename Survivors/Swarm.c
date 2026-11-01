@@ -405,3 +405,25 @@ int Swarm_KillEnemiesTouching(float x, float y, float radius, float* killed_x, f
     }
     return killed;
 }
+
+//counts the number of enemies that touch the player
+int Swarm_NumOfEnemiesTouching(float x, float y, float radius)
+{
+    int count = 0;
+    for (int i = 0; i < max_enemies; i++)
+    {
+        if (enemy_active[i] == 0)
+        {
+            continue;
+        }
+        float enemy_radius = enemy_stats[enemy_type[i]].size / 2.0f;
+        float combined_radius = radius + enemy_radius;
+        float dx = enemy_pos[i].x - x;
+        float dy = enemy_pos[i].y - y;
+        if ((dx * dx) + (dy * dy) <= (combined_radius * combined_radius))
+        {
+            count = count + 1;
+        }
+    }
+    return count;
+}
