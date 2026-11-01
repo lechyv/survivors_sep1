@@ -106,6 +106,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
   <ItemGroup>
     <ClCompile Include="coindrop.c" />
     <ClCompile Include="game.c" />
+    <ClCompile Include="hud.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="mainmenu.c" />
     <ClCompile Include="Swarm.c" />
@@ -114,6 +115,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
   <ItemGroup>
     <ClInclude Include="coin-drop.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="hud.h" />
     <ClInclude Include="mainmenu.h" />
     <ClInclude Include="Swarm.h" />
     <ClInclude Include="utils.h" />
