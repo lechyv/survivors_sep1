@@ -12,6 +12,8 @@
 #define enemy_projectile_diameter 12.0f
 #define enemy_projectile_damage   10.0f
 #define enemy_projectile_lifetime 8.0f
+#define health_bar_height 4.0f   
+#define health_bar_gap    6.0f
 
 /*enum associates each number element/index with a name.
 This gets updated when a new enemy type is introduced e.g. BOSS.
@@ -295,6 +297,35 @@ static void Draw_Enemy(int i)
     }
 }
 
+// Draws a small health bar just above enemy i
+static void Draw_Enemy_Health_Bar(int i)
+{
+    float x = enemy_pos[i].x;
+    float y = enemy_pos[i].y;
+    float s = enemy_stats[enemy_type[i]].size;
+
+    // how much health is left: 1.0 = full, 0.5 = half, 0.0 = empty
+    float percent = enemy_health[i] / enemy_stats[enemy_type[i]].max_health;
+    if (percent < 0.0f) percent = 0.0f;
+    if (percent > 1.0f) percent = 1.0f;
+
+    float bar_width = s;                                                 // same width as the enemy
+    float bar_left = x - bar_width / 2.0f;                               // centred on the enemy
+    float bar_top = y - s / 2.0f - health_bar_gap - health_bar_height;   // above its "head"
+
+    CP_Settings_NoStroke();
+    CP_Settings_RectMode(CP_POSITION_CORNER);
+
+    // dark background (missing health)
+    CP_Settings_Fill(CP_Color_Create(40, 40, 40, 255));
+    CP_Graphics_DrawRect(bar_left, bar_top, bar_width, health_bar_height);
+
+    // green fill (health left)
+    CP_Settings_Fill(CP_Color_Create(80, 220, 100, 255));
+    CP_Graphics_DrawRect(bar_left, bar_top, bar_width * percent, health_bar_height);
+}
+
+
 static void Draw_Enemies(void)
 {
     for (int i = 0; i < max_enemies; i++)
@@ -302,6 +333,7 @@ static void Draw_Enemies(void)
         if (enemy_active[i] == 1)
         {
             Draw_Enemy(i);
+            Draw_Enemy_Health_Bar(i); 
         }
     }
 }
