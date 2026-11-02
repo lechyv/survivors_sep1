@@ -7,7 +7,7 @@
 #define max_enemy_projectiles 64
 
 // tank projectiles 
-#define tank_fire_interval        3.5f     //projectile cd
+#define tank_fire_interval        3.5f     //projectile 
 #define enemy_projectile_speed    250.0f   
 #define enemy_projectile_diameter 12.0f
 #define enemy_projectile_damage   10.0f

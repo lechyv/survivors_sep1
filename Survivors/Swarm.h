@@ -5,11 +5,11 @@
    stage:      1 = base enemies only, 2 = base + fast + tank */
 void Swarm_Init(int difficulty, int stage);
 
-/* Spawns, moves, shoots and draws everything in the swarm. Call once per frame. */
+/* Spawns, behaviour, shoots and draws everything in the swarm. */
 void Swarm_Update(CP_Vector player_pos);
 
 /* Total damage dealt to the player this frame by tank projectiles touching the circle
-   at (x, y). Touching projectiles are removed. Pass the result to combat_damage_player. */
+   at (x, y). Projectile collisions are removed so they pass through each other. Pass the result to combat_damage_player. */
 float Swarm_ProjectilesHitPlayer(float x, float y, float radius);
 
 int Swarm_KillEnemiesTouching(float x, float y, float radius, float* killed_x, float* killed_y, int max_killed);
