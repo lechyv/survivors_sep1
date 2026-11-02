@@ -385,7 +385,10 @@ void Swarm_Update(CP_Vector player_pos)
 
     Move_Enemies(player_pos, dt);
     Update_Projectiles(dt);
+}
 
+void Swarm_Draw(void)
+{
     Draw_Enemies();
     Draw_Projectiles();
 }

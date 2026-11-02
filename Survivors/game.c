@@ -5,6 +5,7 @@
 #include "Swarm.h"
 #include "coin-drop.h"
 #include "hud.h"
+#include "pause.h"
 
 extern int coinCount;
 
@@ -398,26 +399,36 @@ void Game_Init(void)
 	drone_init();
 	machine_gun_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
+	Pause_Init();
 }
 
 void Game_Update(void)
 {
+	Pause_HandleInput();   // ESC or P toggles pause
+
 	// black background
 	CP_Graphics_ClearBackground(CP_Color_Create(0, 0, 0, 255));
 
-	Swarm_Update(CP_Vector_Set(playerX, playerY));
-	Player_Update();
-	drone_update();
-	machine_gun_drone_update();
-	bullet_update();
+	// ----- update: only while NOT paused -----
+	if (Pause_IsPaused() == 0)
+	{
+		Swarm_Update(CP_Vector_Set(playerX, playerY));
+		Player_Update();
+		drone_update();
+		machine_gun_drone_update();
+		bullet_update();
 
-	int enemies_touching_player = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius);
-	combat_damage_player(enemies_touching_player * enemy_contact_damage);
-	combat_damage_player(Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius));
-	// coin drop: kill enemies touching the player, drop a coin where each died,
-    // then pick up any coin the player is touching
-	Coins_KillAndDrop(playerX, playerY, player_radius);
-	Coins_Update(playerX, playerY, player_radius);
+		int enemies_touching_player = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius);
+		combat_damage_player(enemies_touching_player * enemy_contact_damage);
+		combat_damage_player(Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius));
+		// coin drop: kill enemies touching the player, drop a coin where each died,
+		// then pick up any coin the player is touching
+		Coins_KillAndDrop(playerX, playerY, player_radius);
+		Coins_Update(playerX, playerY, player_radius);
+	}
+
+	// ----- draw: always, so the game stays visible behind the pause menu -----
+	Swarm_Draw();
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
 	drone_draw();
@@ -425,17 +436,14 @@ void Game_Update(void)
 	bullet_draw();
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
 
+	Pause_Draw();    
+
 	if (player_health <= 0.0f)
 	{
 		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
 	}
-
-	//program termination
-	if (CP_Input_KeyTriggered(KEY_Q))
-	{
-		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
-	}
 }
+
 
 void Game_Exit(void)
 {
