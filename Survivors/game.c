@@ -117,6 +117,11 @@ void Player_Move(void)
 // Draws an orange arrow
 void Player_Draw(void)
 {
+	// blink while invulnerable: skip drawing every other 0.1s
+	if (invulnTimer > 0.0f && ((int)(invulnTimer * 10.0f) % 2 == 0))
+	{
+		return;
+	}
 	CP_Settings_Fill(CP_Color_Create(255, 165, 0, 255));
 	CP_Graphics_DrawTriangleAdvanced(playerX + 30, playerY, playerX - 15, playerY - 25, playerX - 15, playerY + 25, orangeArrow);
 }
