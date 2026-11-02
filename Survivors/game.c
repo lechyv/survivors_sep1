@@ -19,7 +19,9 @@ float dashSpeed;            // speed while dashing
 float dashDistance;         // distance of dash
 float dashRemaining;        // distance left in the current dash (0 = not dashing)
 float dashCooldown;         // seconds between dashes
-float dashCooldownTimer;    // seconds left until the next dash is allowed
+float dashCooldownTimer;  
+float invulnTimer;          // seconds of invulnerability left after being hit
+#define player_invuln_time 1.0f// seconds left until the next dash is allowed
 
 #define PI 3.14159265f
 
@@ -160,6 +162,8 @@ int combat_circles_touch(float x1, float y1, float r1, float x2, float y2, float
 void combat_init(void)
 {
 	player_health = player_health_max;
+	invulnTimer = 0.0f;
+	player_health = player_health_max;
 	for (int i = 0; i < max_bullets; i++)
 	{
 		bulletActive[i] = 0;
@@ -170,17 +174,20 @@ void combat_init(void)
 //player damage. dashing will avoid the damage.
 void combat_damage_player(float amount)
 {
-	if (dashRemaining > 0.0f)
+	if (amount <= 0.0f || dashRemaining > 0.0f || invulnTimer > 0.0f)
 	{
 		return;
 	}
 
 	player_health = player_health - amount;
-
 	if (player_health < 0.0f)
 	{
 		player_health = 0.0f;
 	}
+
+	invulnTimer = player_invuln_time;   // start invulnerability
+
+
 }
 
 //drone damage
@@ -427,9 +434,14 @@ void Game_Update(void)
 		machine_gun_drone_update();
 		bullet_update();
 
-		int enemies_touching_player = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius);
-		combat_damage_player(enemies_touching_player * enemy_contact_damage);
-		combat_damage_player(Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius));
+		if (invulnTimer > 0.0f)
+		{
+			invulnTimer -= CP_System_GetDt();
+		}
+
+		float contactDamage = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius) * enemy_contact_damage;
+		float projectileDamage = Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius);
+		combat_damage_player(contactDamage + projectileDamage);
 		// coin drop: kill enemies touching the player, drop a coin where each died,
 		// then pick up any coin the player is touching
 		Coins_Update(playerX, playerY, player_radius);
@@ -437,7 +449,7 @@ void Game_Update(void)
 
 	// ----- draw: always, so the game stays visible behind the overlays -----
 	Swarm_Draw();
-	Coins_Draw();          
+	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
 	drone_draw();
 	machine_gun_drone_draw();
