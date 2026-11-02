@@ -6,6 +6,7 @@
 #include "coin-drop.h"
 #include "hud.h"
 #include "pause.h"
+#include "gameover.h"
 
 extern int coinCount;
 
@@ -137,6 +138,8 @@ float bulletYv[max_bullets];
 float bulletAge[max_bullets];	//seconds since bullet fired
 float bulletDamage[max_bullets];
 float player_health;
+float runTime;   
+
 
 // collision
 
@@ -390,7 +393,7 @@ void Game_Init(void)
 	dashSpeed = 20.0f;
 	dashDistance = 150.0f;
 	dashRemaining = 0.0f;
-	dashCooldown = 3.0f;
+	dashCooldown = 2.0f;
 	dashCooldownTimer = 0.0f;
 	
 	//PLEASE DONT DELETE THIS UNLESS YOU ARE DONE WITH DIFFICULTY HANDLING
@@ -400,18 +403,24 @@ void Game_Init(void)
 	machine_gun_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Pause_Init();
+	GameOver_Init();
+	runTime = 0.0f;
 }
 
 void Game_Update(void)
 {
-	Pause_HandleInput();   // ESC or P toggles pause
-
-	// black background
-	CP_Graphics_ClearBackground(CP_Color_Create(0, 0, 0, 255));
-
-	// ----- update: only while NOT paused -----
-	if (Pause_IsPaused() == 0)
+	if (GameOver_IsActive() == 0)
 	{
+		Pause_HandleInput();   
+	}
+
+	CP_Graphics_ClearBackground(CP_Color_Create(45, 20, 75, 255));
+
+	// ----- update: only while NOT paused and NOT dead -----
+	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0)
+	{
+		runTime += CP_System_GetDt();
+
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
 		Player_Update();
 		drone_update();
@@ -426,22 +435,31 @@ void Game_Update(void)
 		Coins_Update(playerX, playerY, player_radius);
 	}
 
-	// ----- draw: always, so the game stays visible behind the pause menu -----
+	// ----- draw: always, so the game stays visible behind the overlays -----
 	Swarm_Draw();
-	Coins_Draw();          // coins are drawn under the player
+	Coins_Draw();          
 	Player_Draw();
 	drone_draw();
 	machine_gun_drone_draw();
 	bullet_draw();
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
 
-	Pause_Draw();    
+	Pause_Draw();
 
-	if (player_health <= 0.0f)
+	// player just died: start the game over screen
+	if (player_health <= 0.0f && GameOver_IsActive() == 0)
+	{
+		GameOver_Start();
+	}
+	GameOver_Draw(coinCount, runTime);  
+
+	// back to menu
+	if (CP_Input_KeyTriggered(KEY_Q))
 	{
 		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
 	}
 }
+
 
 
 void Game_Exit(void)
