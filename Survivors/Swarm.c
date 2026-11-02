@@ -1,6 +1,7 @@
 #include <math.h>
 #include "Swarm.h"
 #include "coin-drop.h" //coin-drop function
+#include <stddef.h>
 
 #define pi 3.14159265f
 
@@ -408,8 +409,13 @@ void Swarm_Draw(void)
 
 int Swarm_GetNearest(float x, float y, float range, CP_Vector* target)
 {
+    if (target == NULL || range < 0.0f)
+    {
+        return 0;
+    }
+
     int found = 0;
-    float nearest_distance = range;
+    float nearest_distance_squared = range * range;
 
     for (int i = 0; i < max_enemies; i++)
     {
@@ -417,10 +423,15 @@ int Swarm_GetNearest(float x, float y, float range, CP_Vector* target)
         {
             continue;
         }
-        float distance = CP_Math_Distance(x, y, enemy_pos[i].x, enemy_pos[i].y);
-        if (distance < nearest_distance)
+        
+        float dx = enemy_pos[i].x - x;
+        float dy = enemy_pos[i].y - y;
+
+        float distance_squared = (dx * dx) + (dy * dy);
+
+        if (distance_squared < nearest_distance_squared)
         {
-            nearest_distance = distance;
+            nearest_distance_squared = distance_squared;
             *target = enemy_pos[i];
             found = 1;
         }
@@ -474,4 +485,36 @@ int Swarm_NumOfEnemiesTouching(float x, float y, float radius)
         }
     }
     return count;
+}
+
+//Function for AOE Damage of rocket drone
+int Swarm_AOE_Damage(float x, float y, float radius, float damage)
+{
+    int killed = 0;
+
+    for (int i = 0; i < max_enemies; i++)
+    {
+        if (enemy_active[i] == 0)
+        {
+            continue;
+        }
+
+        float dx = enemy_pos[i].x - x;
+        float dy = enemy_pos[i].y - y;
+        float max_hit_distance = radius + enemy_stats[enemy_type[i]].size / 2.0f;
+
+        if (((dx * dx) + (dy * dy)) <= (max_hit_distance * max_hit_distance))
+        {
+            enemy_health[i] = enemy_health[i] - damage;
+
+
+            if (enemy_health[i] <= 0.0f)
+            {
+                Coins_Drop(enemy_pos[i].x, enemy_pos[i].y);
+                enemy_active[i] = 0;
+                killed++;
+            }
+        }
+    }
+    return killed;
 }
