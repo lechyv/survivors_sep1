@@ -182,11 +182,20 @@ static void Update_Projectiles(float dt)
 
     for (int i = 0; i < max_enemy_projectiles; i++)
     {
-        if (projectile_active[i] == 0) continue;
+        //checks if projectile slot is not in use or unalive. (Only "alive" projectiles needs updating below)
+        if (projectile_active[i] == 0) continue; 
 
+        /*CP_Vector_Scale gives the projectile velocity multiplied by the current system time to get the 
+        total distance travelled in this frame.
+        Projectile_pos is the current projectile position. 
+        CP_Vector_Add adds together the updated distance travelled by CP_Vector_Scale to the current position
+        to give the current new projectile position*/
         projectile_pos[i] = CP_Vector_Add(projectile_pos[i], CP_Vector_Scale(projectile_vel[i], dt));
+
+        //projectile_age[i] += dt; tracks the "life" of the projectile; how long left till it fades or disappears.
         projectile_age[i] += dt;
 
+        //Unalives the projectile when it has reached the end of its life cycle, or reaches somewhere beyond the edge of screen.
         if (projectile_age[i] > enemy_projectile_lifetime ||
             projectile_pos[i].x < -20.0f || projectile_pos[i].y < -20.0f ||
             projectile_pos[i].x > w + 20.0f || projectile_pos[i].y > h + 20.0f)
@@ -203,12 +212,14 @@ float Swarm_ProjectilesHitPlayer(float x, float y, float radius)
 
     for (int i = 0; i < max_enemy_projectiles; i++)
     {
+        //Again, checks for all "alive" projectiles only.
         if (projectile_active[i] == 0) continue;
 
         float dx = projectile_pos[i].x - x;
         float dy = projectile_pos[i].y - y;
         if ((dx * dx + dy * dy) <= (touch_distance * touch_distance))
         {
+            //projectile is assigned "unalive" state
             projectile_active[i] = 0;
             damage += enemy_projectile_damage;
         }
@@ -230,7 +241,7 @@ static void Move_Enemies(CP_Vector player_pos, float dt)
 
         int type = enemy_type[i];
 
-        // drone bullets: subtract damage, die at 0 hp (TO BE DONE WHEN WE HAVE HP)
+        // drone bullets: subtract damage, die at 0 hp 
         float damage = bullet_check_if_hit(enemy_pos[i].x, enemy_pos[i].y, enemy_stats[type].size / 2.0f);
         if (damage > 0.0f)
         {
