@@ -423,7 +423,6 @@ void Game_Update(void)
 		combat_damage_player(Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius));
 		// coin drop: kill enemies touching the player, drop a coin where each died,
 		// then pick up any coin the player is touching
-		Coins_KillAndDrop(playerX, playerY, player_radius);
 		Coins_Update(playerX, playerY, player_radius);
 	}
 
