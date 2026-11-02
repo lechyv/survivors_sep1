@@ -237,7 +237,6 @@ static void Move_Enemies(CP_Vector player_pos, float dt)
             enemy_health[i] -= damage;
             if (enemy_health[i] <= 0.0f)
             {
-                enemy_active[i] = 0;
 				Coins_Drop(enemy_pos[i].x, enemy_pos[i].y); //coin-drop, drop a coin where the enemy died)
 				enemy_active[i] = 0; //enemy is dead
                 continue;
