@@ -125,7 +125,7 @@ void Player_Draw(void)
 	CP_Settings_Fill(CP_Color_Create(255, 165, 0, 255));
 	CP_Graphics_DrawTriangleAdvanced(playerX + 30, playerY, playerX - 15, playerY - 25, playerX - 15, playerY + 25, orangeArrow);
 }
-/*Combat and Damage*/
+//Combat and Damage
 #define max_bullets 128
 #define bullet_speed 200.0f
 #define bullet_radius 4.0f
@@ -168,7 +168,6 @@ void combat_init(void)
 {
 	player_health = player_health_max;
 	invulnTimer = 0.0f;
-	player_health = player_health_max;
 	for (int i = 0; i < max_bullets; i++)
 	{
 		bulletActive[i] = 0;
@@ -338,8 +337,8 @@ void drone_draw(void)
 //machine gun drone
 
 #define machine_gun_drone_size 14.0f
-#define machine_gun_drone_distance 90.0f
-#define machine_gun_drone_orbit_speed 1.2f
+#define machine_gun_drone_distance 60.0f
+#define machine_gun_drone_orbit_speed 1.5f
 #define machine_gun_drone_fire_rate 6.0f
 #define machine_gun_drone_range 350.0f
 
@@ -349,7 +348,7 @@ float MGDroneFireTimer;
 
 void machine_gun_drone_init(void)
 {
-	MGDroneAngle = 3.14f;
+	MGDroneAngle = 2.09f;
 	MGDroneFireTimer = 0.0f;
 }
 
@@ -385,6 +384,214 @@ void machine_gun_drone_draw(void)
 	CP_Graphics_DrawCircle(MGDroneX, MGDroneY, machine_gun_drone_size);
 }
 
+//rocket drone
+#define rocket_drone_size 18.0f
+#define rocket_drone_distance 60
+#define rocket_drone_orbit_speed 1.5f
+#define rocket_drone_fire_rate 0.30f
+#define rocket_drone_range 350.0f
+
+#define max_rockets 32
+#define rocket_speed 300.0f
+#define rocket_radius 8.0f
+#define rocket_damage 30.0f
+#define rocket_AOE_radius 70.0f
+#define rocket_lifetime 3.5f
+#define AOE_duration 0.25f
+
+float RDroneX, RDroneY;
+float RDroneAngle;
+float RDroneFireTimer;
+
+int rocketActive[max_rockets];
+float rocketX[max_rockets];
+float rocketY[max_rockets];
+float rocketXv[max_rockets];
+float rocketYv[max_rockets];
+float rocketAge[max_rockets];
+
+int AOEActive[max_rockets];
+float AOEX[max_rockets];
+float AOEY[max_rockets];
+float AOEAge[max_rockets];
+
+void rocket_fire(float fromX, float fromY, float targetX, float targetY)
+{
+	float dx = targetX - fromX;
+	float dy = targetY - fromY;
+	float distance = sqrtf((dx * dx) + (dy * dy));
+
+	if (distance < 0.01f)
+	{
+		return;
+	}
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (rocketActive[i] == 0)
+		{
+			rocketActive[i] = 1;
+
+			rocketX[i] = fromX;
+			rocketY[i] = fromY;
+
+			rocketXv[i] = (dx / distance) * rocket_speed;
+			rocketYv[i] = (dy / distance) * rocket_speed;
+
+			rocketAge[i] = 0.0f;
+			return;
+		}
+	}
+}
+
+void rocket_AOE(float x, float y)
+{
+	Swarm_AOE_Damage(x, y, rocket_AOE_radius, rocket_damage);
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (AOEActive[i] == 0)
+		{
+			AOEActive[i] = 1;
+			AOEX[i] = x;
+			AOEY[i] = y;
+			AOEAge[i] = 0.0f;
+			return;
+		}
+	}
+}
+
+void rocket_update(void)
+{
+	float dt = CP_System_GetDt();
+	float w = (float)CP_System_GetWindowWidth();
+	float h = (float)CP_System_GetWindowHeight();
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (rocketActive[i] == 0)
+		{
+			continue;
+		}
+
+		rocketAge[i] = rocketAge[i] + dt;
+
+		if (rocketAge[i] > rocket_lifetime)
+		{
+			rocketActive[i] = 0;
+			continue;
+		}
+
+		CP_Vector target;
+
+		if (Swarm_GetNearest(rocketX[i], rocketY[i], rocket_drone_range, &target))
+		{
+			float dx = target.x - rocketX[i];
+			float dy = target.y - rocketY[i];
+			float distance = sqrtf((dx * dx) + (dy * dy));
+
+			if (distance <= rocket_speed * dt + 26.0f)
+			{
+				rocketActive[i] = 0;
+				rocket_AOE(target.x, target.y);
+				continue;
+			}
+
+			if (distance > 0.01f)
+			{
+				rocketXv[i] = (dx / distance) * rocket_speed;
+				rocketYv[i] = (dy / distance) * rocket_speed;
+			}
+		}
+
+		rocketX[i] = rocketX[i] + rocketXv[i] * dt;
+		rocketY[i] = rocketY[i] + rocketYv[i] * dt;
+
+		if (rocketX[i] < -20.0f || rocketY[i] < -20.0f || rocketX[i] > w + 20.0f || rocketY[i] > h + 20.0f)
+		{
+			rocketActive[i] = 0;
+		}
+	}
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (AOEActive[i] == 1)
+		{
+			AOEAge[i] = AOEAge[i] + dt;
+
+			if (AOEAge[i] >= AOE_duration)
+			{
+				AOEActive[i] = 0;
+			}
+		}
+	}
+}
+
+void rocket_drone_init(void)
+{
+	RDroneAngle = 4.19f;
+	RDroneFireTimer = 0.0f;
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		rocketActive[i] = 0;
+		AOEActive[i] = 0;
+	}
+}
+
+void rocket_drone_update(void)
+{
+	float dt = CP_System_GetDt();
+
+	RDroneAngle = RDroneAngle + (rocket_drone_orbit_speed * dt);
+
+	RDroneX = playerX + cosf(RDroneAngle) * rocket_drone_distance;
+	RDroneY = playerY + sinf(RDroneAngle) * rocket_drone_distance;
+
+	RDroneFireTimer = RDroneFireTimer - dt;
+
+	if (RDroneFireTimer > 0.0f)
+	{
+		return;
+	}
+
+	CP_Vector target;
+
+	if (Swarm_GetNearest(RDroneX, RDroneY, rocket_drone_range, &target) == 1)
+	{
+		rocket_fire(RDroneX, RDroneY, target.x, target.y);
+		RDroneFireTimer = 1.0f / rocket_drone_fire_rate;
+	}
+
+}
+
+void rocket_system_draw(void)
+{
+	CP_Settings_NoStroke();
+	CP_Settings_Fill(CP_Color_Create(100, 160, 255, 255));
+	CP_Graphics_DrawCircle(RDroneX, RDroneY, rocket_drone_size);
+
+	CP_Settings_Fill(CP_Color_Create(255, 80, 40, 255));
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (rocketActive[i] == 1)
+		{
+			CP_Graphics_DrawCircle(rocketX[i], rocketY[i], rocket_radius);
+		}
+	}
+
+	for (int i = 0; i < max_rockets; i++)
+	{
+		if (AOEActive[i] == 1)
+		{
+			float AOEProgress = AOEAge[i] / AOE_duration;
+			float AOESize = rocket_AOE_radius * 2.0f * AOEProgress;
+
+			CP_Settings_Fill(CP_Color_Create(255, 140, 30, 150));
+			CP_Graphics_DrawCircle(AOEX[i], AOEY[i], AOESize);
+		}
+	}
+}
 
 /*Game state*/
 
@@ -413,6 +620,7 @@ void Game_Init(void)
 	combat_init();
 	drone_init();
 	machine_gun_drone_init();
+	rocket_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Pause_Init();
 	GameOver_Init();
@@ -437,6 +645,8 @@ void Game_Update(void)
 		Player_Update();
 		drone_update();
 		machine_gun_drone_update();
+		rocket_drone_update();
+		rocket_update();
 		bullet_update();
 
 		if (invulnTimer > 0.0f)
@@ -458,6 +668,7 @@ void Game_Update(void)
 	Player_Draw();
 	drone_draw();
 	machine_gun_drone_draw();
+	rocket_system_draw();
 	bullet_draw();
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
 
