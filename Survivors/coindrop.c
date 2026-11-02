@@ -2,11 +2,10 @@
 #include <stdio.h> // for printf
 #include "cprocessing.h"
 #include "coin-drop.h"
-#include "Swarm.h" //Swarm_KillEnemiesTouching
+
 
 #define MAX_COINS 128 //Max coins on ground at once
 #define COIN_DIAMETER 14.0f //size of coin (pixel)
-#define MAX_KILLS_PER_FRAME 64 // max enemies that can drop a coin in one frame
 #define COIN_PICKUP_DELAY 0.5f //seconds before a coin can be picked up 
 #define COIN_TEXT_SIZE 40.0f //size of the "Coins: N" text
 #define COIN_TEXT_X 20.0f//position of the counter x
@@ -57,23 +56,6 @@ void Coins_Drop(float x, float y)
 		i += 1;
 	}
 	// if every slot is in use, the coin is simply not dropped
-}
-
-void Coins_KillAndDrop(float playerX, float playerY, float playerRadius)
-{
-	// positions of the enemies killed this frame (filled in by Swarm.c)
-	float killedX[MAX_KILLS_PER_FRAME];
-	float killedY[MAX_KILLS_PER_FRAME];
-
-	int killed = Swarm_KillEnemiesTouching(playerX, playerY, playerRadius, killedX, killedY, MAX_KILLS_PER_FRAME);
-
-	// one coin for every enemy killed, dropped where it died
-	int i = 0;
-	while (i < killed)
-	{
-		Coins_Drop(killedX[i], killedY[i]);
-		i += 1;
-	}
 }
 
 void Coins_Update(float playerX, float playerY, float playerRadius)
