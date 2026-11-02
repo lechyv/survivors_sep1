@@ -78,7 +78,7 @@ void Main_Menu_Update(void)
 	// Instructions for controls
 	CP_Settings_Fill(CP_Color_Create(40, 20, 80, 255));
 	CP_Settings_TextSize(24.0f);
-	CP_Font_DrawText("WASD: Move    SPACE: Dash    Q: Back to menu    Esc: Exit game", centerX, height * 0.90f);
+	CP_Font_DrawText("WASD: Move    SPACE: Dash     Esc/P: Pause", centerX, height * 0.90f);
 }
 
 void Main_Menu_Exit(void)
