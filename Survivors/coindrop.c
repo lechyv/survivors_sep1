@@ -120,3 +120,13 @@ int Coins_GetCount(void)
 {
 	return coinCount;
 }
+
+int Coins_Spend(int amount)
+{
+	if (amount <= 0 || coinCount < amount)
+	{
+		return 0;
+	}
+	coinCount -= amount;
+	return 1;
+}

@@ -7,6 +7,7 @@
 #include "hud.h"
 #include "pause.h"
 #include "gameover.h"
+#include "shop.h"
 
 extern int coinCount;
 
@@ -592,6 +593,38 @@ void rocket_system_draw(void)
 		}
 	}
 }
+//shop: draws the rockets and explosions only, without the single rocket drone circle (added by Elvis)
+//The shop now draws every drone, so rocket_system_draw is no longer called
+//UI: rockets are red-orange circles, explosions are orange circles that grow, then vanish
+void rocket_projectiles_draw(void)
+{
+	CP_Settings_NoStroke();
+	CP_Settings_Fill(CP_Color_Create(255, 80, 40, 255)); //UI: rocket colour (red-orange). Size is rocket_radius
+
+	int i = 0;
+	while (i < max_rockets)
+	{
+		if (rocketActive[i] == 1)
+		{
+			CP_Graphics_DrawCircle(rocketX[i], rocketY[i], rocket_radius);
+		}
+		i += 1;
+	}
+
+	i = 0;
+	while (i < max_rockets)
+	{
+		if (AOEActive[i] == 1)
+		{
+			float AOEProgress = AOEAge[i] / AOE_duration;            //0.0 when it starts, 1.0 when it ends
+			float AOESize = rocket_AOE_radius * 2.0f * AOEProgress;  //UI: grows to the full blast size (the real damage area)
+
+			CP_Settings_Fill(CP_Color_Create(255, 140, 30, 150));   //UI: explosion colour (orange, half see-through)
+			CP_Graphics_DrawCircle(AOEX[i], AOEY[i], AOESize);
+		}
+		i += 1;
+	}
+}
 
 /*Game state*/
 
@@ -622,6 +655,7 @@ void Game_Init(void)
 	machine_gun_drone_init();
 	rocket_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
+	Shop_Init(); //shop; player starts w 1 basic drone, shop closed(Elvis)
 	Pause_Init();
 	GameOver_Init();
 	runTime = 0.0f;
@@ -629,23 +663,30 @@ void Game_Init(void)
 
 void Game_Update(void)
 {
-	if (GameOver_IsActive() == 0)
+	if (GameOver_IsActive() == 0 && Shop_IsOpen() == 0) //shop: ESC closes the shop instead of pausing while it is open
 	{
-		Pause_HandleInput();   
+		Pause_HandleInput();
+	}
+	//shop: B opens / closes the shop, not while paused or dead (added by Elvis)
+	if (GameOver_IsActive() == 0 && Pause_IsPaused() == 0)
+	{
+		Shop_HandleInput();
 	}
 
 	CP_Graphics_ClearBackground(CP_Color_Create(45, 20, 75, 255));
 
 	// ----- update: only while NOT paused and NOT dead -----
-	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0)
+	//if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0) (Brandon)
+	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0 && Shop_IsOpen() == 0) //shop: game also freezes while the shop is open (Elvis)
 	{
 		runTime += CP_System_GetDt();
 
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
 		Player_Update();
-		drone_update();
-		machine_gun_drone_update();
-		rocket_drone_update();
+		//drone_update(); (Brandon)
+		//machine_gun_drone_update(); (Brandon)
+		//rocket_drone_update(); (Brandon)
+		Shop_UpdateDrones(); // shop; move and fires every drone in squad (Elvis)
 		rocket_update();
 		bullet_update();
 
@@ -666,12 +707,15 @@ void Game_Update(void)
 	Swarm_Draw();
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
-	drone_draw();
-	machine_gun_drone_draw();
-	rocket_system_draw();
+	//drone_draw();
+	//machine_gun_drone_draw(); (added by Brandon)
+	//rocket_system_draw(); (added by Brandon)
+	Shop_DrawDrones(); //shop: draws every drone in the squad (added by Elvis)
+	rocket_projectiles_draw(); //shop: rockets and explosions (added by Elvis)
 	bullet_draw();
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
-
+	
+	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
 
 	// player just died: start the game over screen

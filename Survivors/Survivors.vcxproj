@@ -111,6 +111,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
     <ClCompile Include="main.c" />
     <ClCompile Include="mainmenu.c" />
     <ClCompile Include="pause.c" />
+    <ClCompile Include="shop.c" />
     <ClCompile Include="Swarm.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
@@ -121,6 +122,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
     <ClInclude Include="hud.h" />
     <ClInclude Include="mainmenu.h" />
     <ClInclude Include="pause.h" />
+    <ClInclude Include="shop.h" />
     <ClInclude Include="Swarm.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
