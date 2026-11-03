@@ -71,7 +71,7 @@ Condition Stage 1 only has base enemies.
 Condition Stage 2 has fast and tanks (Maybe stage 3 erases prev enemies to spwan only boss)
 Swarm_Init overwrites this however*/
 static int   current_stage = 1;
-
+int swarm_auto_spawn = 1;
 //how many seconds to wait between spawns of a certain type
 static float spawn_interval[Enemy_Type_Count];
 /*how long it has been since an enemy of a certain type last spawned. Each frame dt is added to it. 
@@ -153,6 +153,26 @@ static void Spawn_Enemy(int type)
         }
     }
 }
+
+//Spawn basic enemy for boss fight phase 2
+void Swarm_SpawnBasic(float x, float y)
+{
+    for (int i = 0; i < max_enemies; i++)
+    {
+        if (enemy_active[i] == 0)
+        {
+            enemy_pos[i] = CP_Vector_Set(x, y);
+            enemy_active[i] = 1;
+            enemy_type[i] = Enemy_Base;
+            enemy_health[i] = enemy_stats[Enemy_Base].max_health;
+            enemy_angle[i] = 0.0f;
+            enemy_fire_timer[i] = tank_fire_interval;
+            return;
+
+        }
+    }
+}
+
 
 /* ------------------------------------------------------------------ 
    Tank projectiles                                                    
@@ -375,6 +395,8 @@ void Swarm_Init(int difficulty, int stage)
     current_stage = stage;
     Set_Difficulty(difficulty);
 
+    swarm_auto_spawn = 1;
+
     for (int t = 0; t < Enemy_Type_Count; t++) spawn_timer[t] = 0.0f;
     for (int i = 0; i < max_enemies; i++) enemy_active[i] = 0;
     for (int i = 0; i < max_enemy_projectiles; i++) projectile_active[i] = 0;
@@ -383,20 +405,21 @@ void Swarm_Init(int difficulty, int stage)
 void Swarm_Update(CP_Vector player_pos)
 {
     float dt = CP_System_GetDt();
-
-    /* each type has its own timer, so rarer types just have a longer interval */
-    for (int t = 0; t < Enemy_Type_Count; t++)
+    if (swarm_auto_spawn == 1)
     {
-        if (!Type_Is_Enabled(t)) continue;
-
-        spawn_timer[t] += dt;
-        if (spawn_timer[t] >= spawn_interval[t])
+        /* each type has its own timer, so rarer types just have a longer interval */
+        for (int t = 0; t < Enemy_Type_Count; t++)
         {
-            Spawn_Enemy(t);
-            spawn_timer[t] = 0.0f;
+            if (!Type_Is_Enabled(t)) continue;
+
+            spawn_timer[t] += dt;
+            if (spawn_timer[t] >= spawn_interval[t])
+            {
+                Spawn_Enemy(t);
+                spawn_timer[t] = 0.0f;
+            }
         }
     }
-
     Move_Enemies(player_pos, dt);
     Update_Projectiles(dt);
 }
