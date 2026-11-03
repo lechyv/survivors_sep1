@@ -713,7 +713,7 @@ void Game_Update(void)
 	Shop_DrawDrones(); //shop: draws every drone in the squad (added by Elvis)
 	rocket_projectiles_draw(); //shop: rockets and explosions (added by Elvis)
 	bullet_draw();
-	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown);
+	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime);
 	
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
