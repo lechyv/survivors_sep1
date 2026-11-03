@@ -30,3 +30,7 @@ void Coins_DrawCounter(void);
 Return how many coins player has collected
 */
 int Coins_GetCount(void);
+
+//deduct coins from player after purchase
+// return 1 if coins were spent, 0 if player cannot afford
+int Coins_Spend(int amount);

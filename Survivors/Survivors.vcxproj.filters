@@ -42,6 +42,9 @@
     <ClCompile Include="gameover.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shop.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Swarm.h">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gameover.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
