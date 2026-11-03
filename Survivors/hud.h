@@ -6,3 +6,4 @@
 //   dashCooldownMax:  full cooldown length in seconds
 void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	float dashCooldownLeft, float dashCooldownMax, float runTime);
+void HUD_Draw_Boss_Health_Bar(float bossHealth);
