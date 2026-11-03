@@ -686,6 +686,12 @@ void Game_Update(void)
 	{
 		runTime += CP_System_GetDt();
 
+		//temporary button to start boss fight
+		if (CP_Input_KeyTriggered(KEY_M))
+		{
+			Game_Start_Boss_Fight();
+		}
+
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
 		Player_Update();
 		//drone_update(); (Brandon)

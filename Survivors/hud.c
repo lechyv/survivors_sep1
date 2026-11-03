@@ -1,6 +1,7 @@
 #include <stdio.h>          
 #include "cprocessing.h"
 #include "hud.h"
+#include "boss.h"
 
 #define hud_x       10.0f    // top-left corner of the panel
 #define hud_y       10.0f
@@ -9,6 +10,9 @@
 #define bar_width   236.0f   // width of the HP and dash bars
 #define bar_height  10.0f
 #define text_size   14.0f
+
+extern float bossHealth;
+extern int bossActive;
 
 // Draws a bar that is that goes from 0.0 to 1.0 (0% - 100%)
 static void HUD_Draw_Bar(float x, float y, float percent, CP_Color color)
@@ -83,4 +87,47 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	float dashPercent = 1.0f - dashCooldownLeft / dashCooldownMax;
 	HUD_Draw_Bar(left, hud_y + 128.0f, dashPercent,
 		CP_Color_Create(80, 200, 255, 255));  // light blue
+
+	//draw boss health bar when its active
+	if (bossActive == 1)
+	{
+		HUD_Draw_Boss_Health_Bar(bossHealth);
+	}
+}
+
+void HUD_Draw_Boss_Health_Bar(float bossHealth)
+{
+	float width = 500.0f;
+	float height = 20.0f;
+	float x = (CP_System_GetWindowWidth() - width) / 2.0f;
+	float y = 40.0f;
+
+	float health_percent = bossHealth / boss_health_max;
+
+	if (health_percent < 0.0f)
+	{
+		health_percent = 0.0f;
+	}
+
+	if (health_percent > 1.0f)
+	{
+		health_percent = 1.0f;
+	}
+
+	CP_Settings_NoStroke();
+	CP_Settings_RectMode(CP_POSITION_CORNER);
+
+	CP_Settings_Fill(CP_Color_Create(40, 40, 40, 255));
+	CP_Graphics_DrawRect(x, y, width, height);
+
+	CP_Settings_Fill(CP_Color_Create(220, 40, 40, 255));
+	CP_Graphics_DrawRect(x, y, width * health_percent, height);
+
+	char text[64];
+	snprintf(text, sizeof(text), "FINAL BOSS %d / %d", (int)bossHealth, (int)boss_health_max);
+
+	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_TextSize(18.0f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
+	CP_Font_DrawText(text, x + width / 2.0f, y - 5.0f);
 }

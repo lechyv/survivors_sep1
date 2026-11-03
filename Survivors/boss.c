@@ -5,15 +5,14 @@
 #include "math.h"
 
 #define boss_size 70.0f
-#define boss_health_max 500.0f
-#define boss_speed 80.0f
-#define boss_dash_speed 450.0f
-#define boss_dash_distance 250.0f
-#define boss_dash_cooldown 4.0f
-#define boss_lock_on_time 1.0f
-#define boss_collision_damage 10.0f
-#define boss_dash_collision_damage 25.0f
-#define boss_summon_interval 8.0f
+#define boss_speed 150.0f
+#define boss_dash_speed 600.0f
+#define boss_dash_distance 350.0f
+#define boss_dash_cooldown 3.0f
+#define boss_lock_on_time 0.5f
+#define boss_collision_damage 15.0f
+#define boss_dash_collision_damage 30.0f
+#define boss_summon_interval 4.0f
 
 float bossX, bossY;
 float bossHealth;
@@ -110,6 +109,9 @@ void boss_update(CP_Vector playerPos)
 	{
 		bossLockTimer = bossLockTimer - dt;
 
+		bossDashX = playerPos.x;
+		bossDashY = playerPos.y;
+
 		if (bossLockTimer <= 0.0f)
 		{
 			float dx = bossDashX - bossX;
@@ -194,9 +196,10 @@ void boss_take_damage(float damage)
 		return;
 	}
 
-	if (bossHealth <= boss_health_max / 2.0f)
+	if (bossHealth <= boss_health_max / 2.0f && bossPhase == 1)
 	{
 		bossPhase = 2;
+		bossSummonTimer = 0.0f;
 	}
 }
 
