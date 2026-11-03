@@ -31,6 +31,7 @@ extern float playerX;
 extern float playerY;
 void bullet_fire(float fromX, float fromY, float targetX, float targetY, float damage);
 void rocket_fire(float fromX, float fromY, float targetX, float targetY);
+int combat_get_target(float x, float y, float range, CP_Vector* target);
 
 #define DRONE_DISTANCE 60.0f    //orbit radius around the player (same as game.c)
 #define DRONE_ORBIT_SPEED 1.5f  //radians per second (same as game.c)
@@ -198,7 +199,7 @@ void Shop_UpdateDrones(void)
 		if (shopDroneFireTimer[i] <= 0.0f)
 		{
 			CP_Vector target;
-			if (Swarm_GetNearest(shopDroneX[i], shopDroneY[i], DRONE_RANGE, &target) == 1)
+			if (combat_get_target(shopDroneX[i], shopDroneY[i], DRONE_RANGE, &target) == 1)
 			{
 				int type = shopDroneType[i];
 				if (type == DRONE_ROCKET)
