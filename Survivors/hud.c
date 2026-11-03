@@ -5,7 +5,7 @@
 #define hud_x       10.0f    // top-left corner of the panel
 #define hud_y       10.0f
 #define hud_width   260.0f
-#define hud_height  120.0f
+#define hud_height  150.0f
 #define bar_width   236.0f   // width of the HP and dash bars
 #define bar_height  10.0f
 #define text_size   14.0f
@@ -39,10 +39,13 @@ static void HUD_Draw_Text(const char* text, float x, float y)
 }
 
 void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
-	float dashCooldownLeft, float dashCooldownMax)
+	float dashCooldownLeft, float dashCooldownMax, float runTime)
 {
 	char text[32];
 	float left = hud_x + 12.0f;   // left edge of everything inside the panel
+
+	int minutes = (int)runTime / 60;
+	int seconds = (int)runTime % 60;
 
 	// Background
 	CP_Settings_RectMode(CP_POSITION_CORNER);
@@ -51,15 +54,19 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	CP_Settings_StrokeWeight(2.0f);
 	CP_Graphics_DrawRect(hud_x, hud_y, hud_width, hud_height);
 
+	//Game Run Time
+	snprintf(text, sizeof(text), "TIME: %d:%02d", minutes, seconds);
+	HUD_Draw_Text(text, left, hud_y + 12.0f);
+
 	// Player HP
 	snprintf(text, sizeof(text), "HP %d/%d", (int)playerHealth, (int)playerMaxHealth);
-	HUD_Draw_Text(text, left, hud_y + 12.0f);
-	HUD_Draw_Bar(left, hud_y + 32.0f, playerHealth / playerMaxHealth,
+	HUD_Draw_Text(text, left, hud_y + 42.0f);
+	HUD_Draw_Bar(left, hud_y + 62.0f, playerHealth / playerMaxHealth,
 		CP_Color_Create(220, 50, 50, 255));   // red
 
 	// coins
 	snprintf(text, sizeof(text), "COINS %d", coins);
-	HUD_Draw_Text(text, left, hud_y + 54.0f);
+	HUD_Draw_Text(text, left, hud_y + 84.0f);
 
 	// dash cooldown
 	if (dashCooldownLeft <= 0.0f)
@@ -70,10 +77,10 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	{
 		snprintf(text, sizeof(text), "DASH %.1fs", (double)dashCooldownLeft);
 	}
-	HUD_Draw_Text(text, left, hud_y + 78.0f);
+	HUD_Draw_Text(text, left, hud_y + 108.0f);
 
 	// bar fills up as the dash recharges (full = ready)
 	float dashPercent = 1.0f - dashCooldownLeft / dashCooldownMax;
-	HUD_Draw_Bar(left, hud_y + 98.0f, dashPercent,
+	HUD_Draw_Bar(left, hud_y + 128.0f, dashPercent,
 		CP_Color_Create(80, 200, 255, 255));  // light blue
 }
