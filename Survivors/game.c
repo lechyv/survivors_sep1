@@ -15,7 +15,8 @@
 	/*Player state*/
 	float playerX, playerY;     // arrow position
 	float speed;                // player (arrow) speed
-	float orangeArrow;          // arrow rotation angle (degrees)
+#define player_radius 20.0f
+	float player_rotation;       //rotation angle (degrees)
 
 	float dashSpeed;            // speed while dashing
 	float dashDistance;         // distance of dash
@@ -54,7 +55,7 @@
 		}
 
 		// move along whatever angle the arrow is facing (works for diagonals too)
-		float radians = orangeArrow * PI / 180.0f;
+		float radians = player_rotation * PI / 180.0f;
 		/*For the next 2 lines of code, cosf(horizontal axis) and sinf(vertical axis)
 		determine where the player is facing in the range of 1 to -1. Picture the dash as a 
 		ray equation: P = O + td whereby playerX and playerY are starting point O, and step 
@@ -88,7 +89,7 @@
 			playerY += dy * speed;
 
 			// arrow angle in degrees (W = -90, S = 90, A = 180, D = 0, diagonals in between)
-			orangeArrow = atan2f(dy, dx) * 180.0f / PI;
+			player_rotation = atan2f(dy, dx) * 180.0f / PI;
 		}
 	}
 
@@ -124,8 +125,9 @@
 		{
 			return;
 		}
-		CP_Settings_Fill(CP_Color_Create(255, 165, 0, 255));
-		CP_Graphics_DrawTriangleAdvanced(playerX + 30, playerY, playerX - 15, playerY - 25, playerX - 15, playerY + 25, orangeArrow);
+		CP_Settings_NoStroke();
+		CP_Settings_Fill(CP_Color_Create(64, 224, 208, 255));   // turquoise
+		CP_Graphics_DrawCircle(playerX, playerY, player_radius * 2.0f);
 	}
 	//Combat and Damage
 	#define max_bullets 128
@@ -642,8 +644,8 @@ void rocket_projectiles_draw(void)
 		// speed of player
 		speed = 5.0f;
 
-		// arrow starts facing right
-		orangeArrow = 0.0f;
+		// player faces east.
+		player_rotation = 0.0f;
 
 		// dash settings
 		dashSpeed = 20.0f;
