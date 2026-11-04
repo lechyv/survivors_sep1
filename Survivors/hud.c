@@ -43,13 +43,12 @@ static void HUD_Draw_Text(const char* text, float x, float y)
 }
 
 void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
-	float dashCooldownLeft, float dashCooldownMax, float runTime)
+	float dashCooldownLeft, float dashCooldownMax, float runTime, float swarmTimer)
 {
 	char text[32];
 	float left = hud_x + 12.0f;   // left edge of everything inside the panel
 
-	int minutes = (int)runTime / 60;
-	int seconds = (int)runTime % 60;
+	int seconds_left = (int)swarmTimer + 0.999f;
 
 	// Background
 	CP_Settings_RectMode(CP_POSITION_CORNER);
@@ -59,7 +58,7 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	CP_Graphics_DrawRect(hud_x, hud_y, hud_width, hud_height);
 
 	//Game Run Time
-	snprintf(text, sizeof(text), "TIME: %d:%02d", minutes, seconds);
+	snprintf(text, sizeof(text), "TIME LEFT: %ds", seconds_left);
 	HUD_Draw_Text(text, left, hud_y + 12.0f);
 
 	// Player HP
