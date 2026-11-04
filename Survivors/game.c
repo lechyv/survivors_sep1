@@ -25,8 +25,11 @@
 	float invulnTimer;          // seconds of invulnerability left after being hit
 	#define player_invuln_time 1.0f// seconds left until the next dash is allowed
 
-	#define PI 3.14159265f
+	#define swarm_duration 45.0f //duration of each swarm
+	float swarmTimer;
+	int currentSwarm;
 
+	#define PI 3.14159265f
 	/*Player controls*/
 	// Space: start a dash if off cooldown and not already dashing
 	void Player_HandleDashInput(void)
@@ -664,6 +667,9 @@ void rocket_projectiles_draw(void)
 	GameOver_Init();
 	boss_reset();
 	runTime = 0.0f;
+
+	swarmTimer = swarm_duration;
+	currentSwarm = 1;
 }
 
 void Game_Update(void)
@@ -685,6 +691,16 @@ void Game_Update(void)
 	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0 && Shop_IsOpen() == 0) //shop: game also freezes while the shop is open (Elvis)
 	{
 		runTime += CP_System_GetDt();
+
+		if (currentSwarm <= 2)
+		{
+			swarmTimer = swarmTimer - CP_System_GetDt();
+
+			if (swarmTimer <= 0.0f)
+			{
+				swarmTimer = 0.0f;
+			}
+		}
 
 		//temporary button to start boss fight
 		if (CP_Input_KeyTriggered(KEY_M))
@@ -726,7 +742,7 @@ void Game_Update(void)
 	rocket_projectiles_draw(); //shop: rockets and explosions (added by Elvis)
 	bullet_draw();
 	boss_draw();
-	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime);
+	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
 	
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
