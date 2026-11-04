@@ -22,14 +22,17 @@ float bossdashRemaining;
 float bossDashX, bossDashY;
 float bossSummonTimer;
 
+extern float playerX;
+extern float playerY;
+
 int bossActive;
 int bossPhase;
 int bossState;
 
 void boss_init(void)
 {
-	bossX = CP_System_GetWindowWidth() / 2.0f;
-	bossY = CP_System_GetWindowHeight() / 2.0f;
+	bossX = playerX + 300.0f;
+	bossY = playerY;
 
 	bossHealth = boss_health_max;
 	bossActive = 1;
