@@ -26,11 +26,50 @@
 	float invulnTimer;          // seconds of invulnerability left after being hit
 	#define player_invuln_time 1.0f// seconds left until the next dash is allowed
 
+	#define world_width 2500.0f
+	#define world_height 2500.0f
+
+	float cameraX;
+	float cameraY;
+
 	#define swarm_duration 45.0f //duration of each swarm
 	float swarmTimer;
 	int currentSwarm;
 
 	#define PI 3.14159265f
+
+	//function to draw world border
+	void world_draw_border(void)
+	{
+		CP_Settings_RectMode(CP_POSITION_CORNER);
+		CP_Settings_NoFill();
+
+		CP_Settings_Stroke(CP_Color_Create(255, 50, 50, 255));
+		CP_Settings_StrokeWeight(5.0f);
+
+		CP_Graphics_DrawRect(0.0f, 0.0f, world_width, world_height);
+		CP_Settings_NoStroke();
+	}
+
+	//function to draw grid in background
+	void world_draw_grid(void)
+	{
+		CP_Settings_Stroke(CP_Color_Create(90, 70, 110, 255));
+		CP_Settings_StrokeWeight(1.0f);
+
+		for (float x = 0; x < world_width; x += 100.0f)
+		{
+			CP_Graphics_DrawLine(x, 0.0f, x, world_height);
+		}
+
+		for (float y = 0; y < world_height; y += 100.0f)
+		{
+			CP_Graphics_DrawLine(0.0, y, world_width, y);
+		}
+
+		CP_Settings_NoStroke();
+	}
+
 	/*Player controls*/
 	// Space: start a dash if off cooldown and not already dashing
 	void Player_HandleDashInput(void)
@@ -96,6 +135,30 @@
 		}
 	}
 
+	//function to check if player is inside boundary
+	void player_check_if_inside_boundary(void)
+	{
+		if (playerX < player_radius)
+		{
+			playerX = player_radius;
+		}
+
+		if (playerX > world_width - player_radius)
+		{
+			playerX = world_width - player_radius;
+		}
+
+		if (playerY < player_radius)
+		{
+			playerY = player_radius;
+		}
+
+		if (playerY > world_height - player_radius)   
+		{
+			playerY = world_height - player_radius;
+		}
+	}
+
 	//player function
 	 void Player_Update(void)
 	{
@@ -118,6 +181,8 @@
 			Player_Move(); //player is always in this same unless dashing. Hence when dashing, the last known position of orangearrow is passed to Player_Dash
 
 		}
+
+		player_check_if_inside_boundary();
 	}
 
 	// Draws an orange arrow
@@ -232,8 +297,8 @@
 	void bullet_update(void)
 	{
 		float dt = CP_System_GetDt();
-		float w = (float)CP_System_GetWindowWidth();
-		float h = (float)CP_System_GetWindowHeight();
+		float w = world_width;
+		float h = world_height;
 
 		for (int i = 0; i < max_bullets; i++)
 		{
@@ -637,12 +702,43 @@ void rocket_projectiles_draw(void)
 		boss_init();
 	}
 
+	//Moving Camera
+	void camera_update(void)
+	{
+		float window_width = CP_System_GetWindowWidth();
+		float window_height = CP_System_GetWindowHeight();
+
+		cameraX = playerX - window_width / 2.0f;
+		cameraY = playerY - window_height / 2.0f;
+
+		if (cameraX < 0.0f)
+		{
+			cameraX = 0.0f;
+		}
+
+		if (cameraY < 0.0f)
+		{
+			cameraY = 0.0f;
+		}
+
+		if (cameraX > world_width - window_width)
+		{
+			cameraX = world_width - window_width;
+		}
+
+		if (cameraY > world_height - window_height)
+		{
+			cameraY = world_height - window_height;
+		}
+	}
+
+
 	void Game_Init(void)
 	{
 		//have a function for difficulty (include mainmenu.h in this file
 		// arrow position on screen (spawn point)
-		playerX = CP_System_GetWindowWidth() / 3.0f;
-		playerY = CP_System_GetWindowHeight() / 6.0f;
+		playerX = world_width / 2.0f;
+		playerY = world_height / 2.0f;
 
 		// speed of player
 		speed = 5.0f;
@@ -672,6 +768,10 @@ void rocket_projectiles_draw(void)
 
 	swarmTimer = swarm_duration;
 	currentSwarm = 1;
+
+	cameraX = 0.0f;
+	cameraY = 0.0f;
+	camera_update();
 }
 
 void Game_Update(void)
@@ -734,6 +834,16 @@ void Game_Update(void)
 		}
 
 	// ----- draw: always, so the game stays visible behind the overlays -----
+	CP_Settings_ResetMatrix();
+	CP_Graphics_ClearBackground(CP_Color_Create(45, 20, 75, 255));
+
+	camera_update();
+	
+	CP_Settings_Translate(-cameraX, -cameraY);
+
+	world_draw_grid();
+	world_draw_border();
+
 	Swarm_Draw();
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
@@ -744,6 +854,9 @@ void Game_Update(void)
 	rocket_projectiles_draw(); //shop: rockets and explosions (added by Elvis)
 	bullet_draw();
 	boss_draw();
+
+	CP_Settings_ResetMatrix();
+
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
 	
 	Shop_Draw(); //shop menu, press "B" on keyboard
