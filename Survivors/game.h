@@ -1,6 +1,9 @@
 
 #pragma once
 
+#define world_width 2500.0f
+#define world_height 2500.0f
+
 void Game_Init(void);
 
 void Game_Update(void);

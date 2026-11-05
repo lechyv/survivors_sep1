@@ -2,6 +2,7 @@
 #include "Swarm.h"
 #include "coin-drop.h" //coin-drop function
 #include <stddef.h>
+#include "game.h" // for world width and height (random spawn locations)ddddd
 
 #define pi 3.14159265f
 
@@ -125,8 +126,8 @@ static int Type_Is_Enabled(int type)
 //Creates randomized enemy spawn locations at the edge of the map/screen
 static CP_Vector Get_Spawn_Location(void)
 {
-    float w = (float)CP_System_GetWindowWidth();
-    float h = (float)CP_System_GetWindowHeight();
+    float w = world_width;
+    float h = world_height;
 
     switch (CP_Random_RangeInt(0, 3))
     {
