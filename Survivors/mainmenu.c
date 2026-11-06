@@ -2,6 +2,7 @@
 #include "mainmenu.h"
 #include "game.h"
 #include "utils.h" 
+#include "diff.h"
 
 
 int menuDifficulty = difficulty_normal;   
@@ -52,7 +53,7 @@ void Main_Menu_Update(void)
 	/* ----- start and exit ----- */
 	if (CP_Input_KeyTriggered(KEY_ENTER) || IsAreaClicked(centerX, startY, 300.0f, 60.0f, mouseX, mouseY) == 1)
 	{
-		CP_Engine_SetNextGameState(Game_Init, Game_Update, Game_Exit);
+		CP_Engine_SetNextGameState(Diff_Select_Init, Diff_Select_Update, Diff_Select_Exit);
 		return;
 	}
 	if (CP_Input_KeyTriggered(KEY_ESCAPE) || IsAreaClicked(centerX, exitY, 300.0f, 60.0f, mouseX, mouseY) == 1)

@@ -45,6 +45,15 @@
     <ClCompile Include="shop.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="boss.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="diff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wave.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Swarm.h">
@@ -72,6 +81,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="boss.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wave.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

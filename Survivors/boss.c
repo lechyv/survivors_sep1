@@ -3,6 +3,7 @@
 #include "game.h"
 #include "Swarm.h"
 #include "math.h"
+#include "diff.h"
 
 #define boss_size 70.0f
 #define boss_speed 150.0f
@@ -189,7 +190,7 @@ void boss_take_damage(float damage)
 	{
 		return;
 	}
-
+	damage = Diff_ScaleDamageToEnemy(damage); //diff: easy = less HP, hard = more HP
 	bossHealth = bossHealth - damage;
 
 	if (bossHealth <= 0.0f)
