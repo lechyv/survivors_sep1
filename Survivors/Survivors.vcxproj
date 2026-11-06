@@ -106,6 +106,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
   <ItemGroup>
     <ClCompile Include="boss.c" />
     <ClCompile Include="coindrop.c" />
+    <ClCompile Include="diff.c" />
     <ClCompile Include="game.c" />
     <ClCompile Include="gameover.c" />
     <ClCompile Include="hud.c" />
@@ -115,10 +116,12 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
     <ClCompile Include="shop.c" />
     <ClCompile Include="Swarm.c" />
     <ClCompile Include="utils.c" />
+    <ClCompile Include="wave.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="boss.h" />
     <ClInclude Include="coin-drop.h" />
+    <ClInclude Include="diff.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="gameover.h" />
     <ClInclude Include="hud.h" />
@@ -127,6 +130,7 @@ xcopy "$(SolutionDir)Extern\CProcessing\lib\x64\fmod.dll" "$(OutDir)" /s /r /y /
     <ClInclude Include="shop.h" />
     <ClInclude Include="Swarm.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="wave.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

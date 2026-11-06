@@ -3,6 +3,7 @@
 #include "coin-drop.h" //coin-drop function
 #include <stddef.h>
 #include "game.h" // for world width and height (random spawn locations)ddddd
+#include "diff.h"
 
 #define pi 3.14159265f
 
@@ -267,6 +268,7 @@ static void Move_Enemies(CP_Vector player_pos, float dt)
         float damage = bullet_check_if_hit(enemy_pos[i].x, enemy_pos[i].y, enemy_stats[type].size / 2.0f);
         if (damage > 0.0f)
         {
+            damage = Diff_ScaleDamageToEnemy(damage);//difficulty: easy = less hp, hard = more hp
             enemy_health[i] -= damage;
             if (enemy_health[i] <= 0.0f)
             {
@@ -515,7 +517,7 @@ int Swarm_NumOfEnemiesTouching(float x, float y, float radius)
 int Swarm_AOE_Damage(float x, float y, float radius, float damage)
 {
     int killed = 0;
-
+    damage = Diff_ScaleDamageToEnemy(damage); //diff, scaled once, before the loop
     for (int i = 0; i < max_enemies; i++)
     {
         if (enemy_active[i] == 0)

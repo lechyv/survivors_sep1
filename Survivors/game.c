@@ -9,6 +9,8 @@
 #include "gameover.h"
 #include "shop.h"
 #include "boss.h"
+#include "diff.h"
+#include "wave.h"
 
 	extern int coinCount;
 
@@ -702,6 +704,33 @@ void rocket_projectiles_draw(void)
 		boss_init();
 	}
 
+	//swarms: called when swarm timer reaches 0.
+	//swarm 1 -> shop -> swarm 2 -> shop -> boss fight
+	void Game_End_Swarm(void)
+	{
+		Swarm_Init(Diff_GetSwarmLevel(), currentSwarm);	//clear leftover enemies and shots, coins stay
+		swarm_auto_spawn = 0;							//no new enemies during the break ( must come after Swarm_Init())
+		Wave_StartBreak(currentSwarm);					//5 sec to pick up coins, shows "SWARM 1 CLEARED"
+	}
+
+	void Game_Start_Next_Swarm(void) {
+		if (currentSwarm == 1) {
+			currentSwarm = 2;
+			swarmTimer = swarm_duration;			//next swarm gets full 45s
+			Swarm_Init(Diff_GetSwarmLevel(), 2); 
+		}
+		else if (currentSwarm == 2) {
+			currentSwarm = 3;						//3 = boss fight, the swarm timer stops counting
+			Game_Start_Boss_Fight();				//boss appears, swarm spawing stays off
+		}
+	}
+
+
+
+
+
+
+
 	//Moving Camera
 	void camera_update(void)
 	{
@@ -754,13 +783,15 @@ void rocket_projectiles_draw(void)
 		dashCooldownTimer = 0.0f;
 	
 	//PLEASE DONT DELETE THIS UNLESS YOU ARE DONE WITH DIFFICULTY HANDLING
-	Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
+	//Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
+		Swarm_Init(Diff_GetSwarmLevel(), 1);// spawb rate from main menu, 1 easy/ 2 normal/ 3 hard. swarm starts on swarm 1 now
 	combat_init();
 	drone_init();
 	machine_gun_drone_init();
 	rocket_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Shop_Init(); //shop; player starts w 1 basic drone, shop closed(Elvis)
+	Wave_Init();
 	Pause_Init();
 	GameOver_Init();
 	boss_reset();
@@ -801,6 +832,14 @@ void Game_Update(void)
 			if (swarmTimer <= 0.0f)
 			{
 				swarmTimer = 0.0f;
+				if (Wave_IsOnBreak() == 0) //if the wave break is not already active, start it
+				{
+					Game_End_Swarm();
+				}
+				else if (Wave_UpdateBreak() == 1)
+				{
+					Game_Start_Next_Swarm();
+				}
 			}
 		}
 
@@ -808,6 +847,8 @@ void Game_Update(void)
 		if (CP_Input_KeyTriggered(KEY_M))
 		{
 			Game_Start_Boss_Fight();
+			currentSwarm = 3; //to stop additional swarms from spawing, since we only have swarm 1 and swarm 2
+			Wave_Init();
 		}
 
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
@@ -827,7 +868,7 @@ void Game_Update(void)
 			float contactDamage = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius) * enemy_contact_damage;
 			float projectileDamage = Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius);
 			float bossDamage = boss_get_collision_damage(playerX, playerY, player_radius);
-			combat_damage_player(contactDamage + projectileDamage + bossDamage);
+			combat_damage_player(Diff_ScaleDamageToPlayer(contactDamage + projectileDamage + bossDamage));
 			// coin drop: kill enemies touching the player, drop a coin where each died,
 			// then pick up any coin the player is touching
 			Coins_Update(playerX, playerY, player_radius);
@@ -858,7 +899,7 @@ void Game_Update(void)
 	CP_Settings_ResetMatrix();
 
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
-	
+	Wave_Draw(); // wave break, prints message "SWARM 1 cleared'
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
 
