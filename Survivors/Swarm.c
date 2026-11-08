@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "game.h" // for world width and height (random spawn locations)ddddd
 #include "diff.h"
+#include "buff.h"
 
 #define pi 3.14159265f
 
@@ -273,7 +274,8 @@ static void Move_Enemies(CP_Vector player_pos, float dt)
             if (enemy_health[i] <= 0.0f)
             {
 				Coins_Drop(enemy_pos[i].x, enemy_pos[i].y); //coin-drop, drop a coin where the enemy died)
-				enemy_active[i] = 0; //enemy is dead
+                Buff_AddKill();//count kill, add buff respectively
+                enemy_active[i] = 0; //enemy is dead
                 continue;
             }
         }
@@ -537,6 +539,7 @@ int Swarm_AOE_Damage(float x, float y, float radius, float damage)
             if (enemy_health[i] <= 0.0f)
             {
                 Coins_Drop(enemy_pos[i].x, enemy_pos[i].y);
+                Buff_AddKill(); //buff: count the kill, every 10 kills = +10% damage
                 enemy_active[i] = 0;
                 killed++;
             }

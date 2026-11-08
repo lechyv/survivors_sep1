@@ -11,6 +11,7 @@
 #include "boss.h"
 #include "diff.h"
 #include "wave.h"
+#include "buff.h"
 
 	extern int coinCount;
 
@@ -290,7 +291,7 @@
 				bulletXv[i] = (dx / distance) * bullet_speed;
 				bulletYv[i] = (dy / distance) * bullet_speed;
 				bulletAge[i] = 0.0f;
-				bulletDamage[i] = damage;
+				bulletDamage[i] = Buff_ScaleDamage(damage); //buff: every bullet(player's drones) gets the kill buff
 				break;
 			}
 		}
@@ -516,8 +517,11 @@
 
 	void rocket_AOE(float x, float y)
 	{
-		Swarm_AOE_Damage(x, y, rocket_AOE_radius, rocket_damage);
-		boss_take_AOE_damage(x, y, rocket_AOE_radius, rocket_damage);	
+		//Swarm_AOE_Damage(x, y, rocket_AOE_radius, rocket_damage);
+		//boss_take_AOE_damage(x, y, rocket_AOE_radius, rocket_damage);	
+		Swarm_AOE_Damage(x, y, rocket_AOE_radius, Buff_ScaleDamage(rocket_damage)); //buff: rocket damage goes up with the kill buff
+		boss_take_AOE_damage(x, y, rocket_AOE_radius, Buff_ScaleDamage(rocket_damage)); //buff: same for the boss
+
 
 		for (int i = 0; i < max_rockets; i++)
 		{
@@ -792,6 +796,7 @@ void rocket_projectiles_draw(void)
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Shop_Init(); //shop; player starts w 1 basic drone, shop closed(Elvis)
 	Wave_Init();
+	Buff_Init();
 	Pause_Init();
 	GameOver_Init();
 	boss_reset();
@@ -900,6 +905,7 @@ void Game_Update(void)
 
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
 	Wave_Draw(); // wave break, prints message "SWARM 1 cleared'
+	Buff_Draw(); //buff: "DMG +10%" text in the bottom-left corner
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
 

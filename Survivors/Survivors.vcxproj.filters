@@ -54,6 +54,9 @@
     <ClCompile Include="wave.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="buff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Swarm.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="buff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
