@@ -44,7 +44,7 @@ int combat_get_target(float x, float y, float range, CP_Vector* target);
 
 //stats of each drone type, indexed by DRONE_BASIC/ DRONE_MACHINE_GUN / DRONE_ROCKET
 // fire rate, dmg and size copied from the drone
-const int shopDroneCost[DRONE_TYPE_COUNT] = { 15, 20, 25 }; // cost of each drone
+const int shopDroneCost[DRONE_TYPE_COUNT] = { 5, 10, 15 }; // cost of each drone
 const float shopDroneFireRate[DRONE_TYPE_COUNT] = { 1.5f, 6.0f, 0.3f }; // seconds between shots]
 const float shopDroneDamage[DRONE_TYPE_COUNT] = { 10.0f, 5.0f, 0.0f }; // damage per shot
 
