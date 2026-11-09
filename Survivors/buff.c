@@ -28,6 +28,16 @@ float Buff_GetMultiplier(void) {
 	return buffMultiplier;
 }
 
+//HUD getters (used by hud.c to show kills and buffs in the top-left panel)
+
+int Buff_GetKills(void) {
+	return buffKills;
+}
+
+int Buff_GetKillsToNextBuff(void) {
+	return BUFF_KILLS_PER_BUFF - (buffKills % BUFF_KILLS_PER_BUFF);
+}
+
 //UI related codes below
 
 void Buff_Draw(void)
@@ -35,8 +45,6 @@ void Buff_Draw(void)
 	char text[64];
 	int percent = (int)((buffMultiplier - 1.0f) * 100.0f + 0.5f);
 	int killsToNext = BUFF_KILLS_PER_BUFF - (buffKills % BUFF_KILLS_PER_BUFF);
-
-	snprintf(text, sizeof(text), "DMG +%d%% NEXT BUFF: %d KILLS", percent, killsToNext);
 
 	CP_Settings_NoStroke();
 	CP_Settings_Fill(CP_Color_Create(255, 120, 60, 255));

@@ -31,3 +31,7 @@ float Buff_GetMultiplier(void);
 //caleed in Game_update after HUD_Draw
 //UI: text, size, pos and colour are in the function stored in buff.c
 void Buff_Draw(void);
+
+//HUD getters
+int Buff_GetKills(void);            //total kills this game
+int Buff_GetKillsToNextBuff(void);  //kills left until the next buff (10, 9, ... 1)

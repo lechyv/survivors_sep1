@@ -2,11 +2,12 @@
 #include "cprocessing.h"
 #include "hud.h"
 #include "boss.h"
+#include "buff.h"           // kills, buffs and damage multiplier
 
 #define hud_x       10.0f    // top-left corner of the panel
 #define hud_y       10.0f
 #define hud_width   260.0f
-#define hud_height  150.0f
+#define hud_height  220.0f   // taller to fit the kills and buff lines
 #define bar_width   236.0f   // width of the HP and dash bars
 #define bar_height  10.0f
 #define text_size   14.0f
@@ -48,7 +49,9 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	char text[32];
 	float left = hud_x + 12.0f;   // left edge of everything inside the panel
 
-	int seconds_left = (int)swarmTimer + 0.999f;
+	int seconds_left = (int)(swarmTimer + 0.999f);   // round up: 44.2s left shows as 45
+
+	(void)runTime;   // not shown yet
 
 	// Background
 	CP_Settings_RectMode(CP_POSITION_CORNER);
@@ -86,6 +89,17 @@ void HUD_Draw(float playerHealth, float playerMaxHealth, int coins,
 	float dashPercent = 1.0f - dashCooldownLeft / dashCooldownMax;
 	HUD_Draw_Bar(left, hud_y + 128.0f, dashPercent,
 		CP_Color_Create(80, 200, 255, 255));  // light blue
+
+	int buffPercent = (int)((Buff_GetMultiplier() - 1.0f) * 100.0f + 0.5f);
+
+	snprintf(text, sizeof(text), "KILLS %d", Buff_GetKills());
+	HUD_Draw_Text(text, left, hud_y + 150.0f);
+
+	snprintf(text, sizeof(text), "DMG +%d%%", buffPercent);
+	HUD_Draw_Text(text, left, hud_y + 172.0f);
+
+	snprintf(text, sizeof(text), "KILLS TO BUFF:%d", Buff_GetKillsToNextBuff());
+	HUD_Draw_Text(text, left, hud_y + 194.0f);
 
 	//draw boss health bar when its active
 	if (bossActive == 1)

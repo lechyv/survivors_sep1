@@ -3,7 +3,8 @@
 #include "gameover.h"
 #include "game.h"           
 #include "mainmenu.h"       
-#include "utils.h"         
+#include "utils.h"        
+#include "buff.h"
 
 static int isGameOver = 0;   // 1 = player is dead, 0 = still playing
 
@@ -89,6 +90,9 @@ void GameOver_Draw(int coins, float timeSurvived)
 
 	snprintf(text, sizeof(text), "TIME SURVIVED: %d:%02d", minutes, seconds);
 	CP_Font_DrawText(text, centerX, height * 0.41f);
+
+	snprintf(text, sizeof(text), "ENEMIES KILLED: %d", Buff_GetKills()); 
+	CP_Font_DrawText(text, centerX, height * 0.47f);
 
 	// ----- buttons -----
 	menu_draw_button(centerX, restartY, 300.0f, 60.0f, "RESTART",
