@@ -219,8 +219,8 @@ static void Fire_Enemy_Projectile(CP_Vector from, CP_Vector target)
 
 static void Update_Projectiles(float dt)
 {
-    float w = (float)CP_System_GetWindowWidth();
-    float h = (float)CP_System_GetWindowHeight();
+    float w = world_width;
+    float h = world_height;
 
     for (int i = 0; i < max_enemy_projectiles; i++)
     {
