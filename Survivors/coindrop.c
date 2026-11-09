@@ -63,7 +63,7 @@ void Coins_Update(float playerX, float playerY, float playerRadius)
 	float dt = CP_System_GetDt();
 
 	// player and coin touch when the distance between their centers is at most the sum of their radii (compared squared, so no sqrt)
-	float touchDistance = playerRadius + COIN_DIAMETER / 2.0f;
+	float touchDistance = 500.0f;
 
 	int i = 0;
 	while (i < MAX_COINS)

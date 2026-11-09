@@ -176,6 +176,24 @@ void Swarm_SpawnBasic(float x, float y)
     }
 }
 
+void Swarm_SpawnTank(float x, float y)
+{
+    for (int i = 0; i < max_enemies; i++)
+    {
+        if (enemy_active[i] == 0)
+        {
+            enemy_pos[i] = CP_Vector_Set(x, y);
+            enemy_active[i] = 1;
+            enemy_type[i] = Enemy_Tank;
+            enemy_health[i] = enemy_stats[Enemy_Tank].max_health;
+            enemy_angle[i] = 0.0f;
+            enemy_fire_timer[i] = tank_fire_interval;
+            return;
+
+        }
+    }
+}
+
 
 /* ------------------------------------------------------------------ 
    Tank projectiles                                                    
