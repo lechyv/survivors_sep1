@@ -4,6 +4,7 @@
 #include "game.h"
 #include "mainmenu.h"
 #include "utils.h"
+#include "buff.h"
 
 static int did_player_win = 0;
 
@@ -66,11 +67,14 @@ void win_draw(int coins, float timeSurvived)
 
 	CP_Settings_TextSize(18.0f);
 
-	snprintf(text, sizeof(text), "COINS COLLECTED: %d", coins);
+	snprintf(text, sizeof(text), "ENEMIES KILLED: %d", Buff_GetKills());
 	CP_Font_DrawText(text, centerX, height * 0.35f);
 
-	snprintf(text, sizeof(text), "TIME SURVIVED: %d:%02d", minutes, seconds);
+	snprintf(text, sizeof(text), "COINS COLLECTED: %d", coins);
 	CP_Font_DrawText(text, centerX, height * 0.45f);
+
+	snprintf(text, sizeof(text), "TIME SURVIVED: %d:%02d", minutes, seconds);
+	CP_Font_DrawText(text, centerX, height * 0.55f);
 
 	menu_draw_button(centerX, restartY, 300.0f, 60.0f, "RESTART", CP_Color_Create(40, 160, 80, 255), CP_Color_Create(70, 200, 110, 255));
 	menu_draw_button(centerX, menuY, 300.0f, 60.0f, "MAIN MENU", CP_Color_Create(110, 70, 200, 255), CP_Color_Create(150, 110, 230, 255));
