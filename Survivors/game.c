@@ -360,109 +360,6 @@
 		}
 	}
 
-	//Starting Drone
-	#define drone_size 16.0f
-	#define drone_distance 60.0f
-	#define drone_orbit_speed 1.5f
-	#define drone_fire_rate 1.5f
-	#define drone_range 350.0f
-
-	float droneX, droneY;
-	float droneAngle;
-	float droneFireTimer;
-
-	void drone_init(void)
-	{
-		droneAngle = 0.0f;
-		droneFireTimer = 0.0f;
-	}
-
-	void drone_update(void)
-	{
-		float dt = CP_System_GetDt();
-		droneAngle = droneAngle + drone_orbit_speed * dt;
-		droneX = playerX + cosf(droneAngle) * drone_distance;
-		droneY = playerY + sinf(droneAngle) * drone_distance;
-
-		droneFireTimer = droneFireTimer - dt;
-		if (droneFireTimer > 0.0f)	// this restricts the fire rate so that it does not shoot constantly
-		{
-			return;
-		}
-
-		CP_Vector target;
-		if (combat_get_target(droneX, droneY, drone_range, &target) == 1)
-		{
-			bullet_fire(droneX, droneY, target.x, target.y, basic_drone_bullet_damage);
-			droneFireTimer = 1.0f / drone_fire_rate;
-		}
-
-	}
-
-	void drone_draw(void)
-	{
-		CP_Settings_NoStroke();
-		CP_Settings_Fill(CP_Color_Create(80, 220, 170, 244));
-		CP_Graphics_DrawCircle(droneX, droneY, drone_size);
-	}
-
-	//machine gun drone
-
-	#define machine_gun_drone_size 14.0f
-	#define machine_gun_drone_distance 60.0f
-	#define machine_gun_drone_orbit_speed 1.5f
-	#define machine_gun_drone_fire_rate 6.0f
-	#define machine_gun_drone_range 350.0f
-
-	float MGDroneX, MGDroneY;
-	float MGDroneAngle;
-	float MGDroneFireTimer;
-
-	void machine_gun_drone_init(void)
-	{
-		MGDroneAngle = 2.09f;
-		MGDroneFireTimer = 0.0f;
-	}
-
-	void machine_gun_drone_update(void)
-	{
-		float dt = CP_System_GetDt();
-
-		MGDroneAngle = MGDroneAngle + machine_gun_drone_orbit_speed * dt;
-
-		MGDroneX = playerX + cosf(MGDroneAngle) * machine_gun_drone_distance;
-		MGDroneY = playerY + sinf(MGDroneAngle) * machine_gun_drone_distance;
-
-		MGDroneFireTimer = MGDroneFireTimer - dt;
-
-		if (MGDroneFireTimer > 0.0f)
-		{
-			return;
-		}
-
-		CP_Vector target;
-
-		if (combat_get_target(MGDroneX, MGDroneY, machine_gun_drone_range, &target) == 1)
-		{
-			bullet_fire(MGDroneX, MGDroneY, target.x, target.y, machine_gun_drone_bullet_damage);
-			MGDroneFireTimer = 1.0f / machine_gun_drone_fire_rate;
-		}
-	}
-
-	void machine_gun_drone_draw(void)
-	{
-		CP_Settings_NoStroke();
-		CP_Settings_Fill(CP_Color_Create(255, 180, 50, 255));
-		CP_Graphics_DrawCircle(MGDroneX, MGDroneY, machine_gun_drone_size);
-	}
-
-	//rocket drone
-	#define rocket_drone_size 18.0f
-	#define rocket_drone_distance 60
-	#define rocket_drone_orbit_speed 1.5f
-	#define rocket_drone_fire_rate 0.30f
-	#define rocket_drone_range 350.0f
-
 	#define max_rockets 32
 	#define rocket_speed 300.0f
 	#define rocket_radius 8.0f
@@ -470,10 +367,7 @@
 	#define rocket_AOE_radius 70.0f
 	#define rocket_lifetime 3.5f
 	#define AOE_duration 0.25f
-
-	float RDroneX, RDroneY;
-	float RDroneAngle;
-	float RDroneFireTimer;
+	#define rocket_drone_range 350.0f
 
 	int rocketActive[max_rockets];
 	float rocketX[max_rockets];
@@ -604,9 +498,6 @@
 
 	void rocket_drone_init(void)
 	{
-		RDroneAngle = 4.19f;
-		RDroneFireTimer = 0.0f;
-
 		for (int i = 0; i < max_rockets; i++)
 		{
 			rocketActive[i] = 0;
@@ -614,60 +505,6 @@
 		}
 	}
 
-	void rocket_drone_update(void)
-	{
-		float dt = CP_System_GetDt();
-
-		RDroneAngle = RDroneAngle + (rocket_drone_orbit_speed * dt);
-
-		RDroneX = playerX + cosf(RDroneAngle) * rocket_drone_distance;
-		RDroneY = playerY + sinf(RDroneAngle) * rocket_drone_distance;
-
-		RDroneFireTimer = RDroneFireTimer - dt;
-
-		if (RDroneFireTimer > 0.0f)
-		{
-			return;
-		}
-
-		CP_Vector target;
-
-		if (combat_get_target(RDroneX, RDroneY, rocket_drone_range, &target) == 1)
-		{
-			rocket_fire(RDroneX, RDroneY, target.x, target.y);
-			RDroneFireTimer = 1.0f / rocket_drone_fire_rate;
-		}
-
-	}
-
-	void rocket_system_draw(void)
-	{
-		CP_Settings_NoStroke();
-		CP_Settings_Fill(CP_Color_Create(100, 160, 255, 255));
-		CP_Graphics_DrawCircle(RDroneX, RDroneY, rocket_drone_size);
-
-		CP_Settings_Fill(CP_Color_Create(255, 80, 40, 255));
-
-		for (int i = 0; i < max_rockets; i++)
-		{
-			if (rocketActive[i] == 1)
-			{
-				CP_Graphics_DrawCircle(rocketX[i], rocketY[i], rocket_radius);
-			}
-		}
-
-		for (int i = 0; i < max_rockets; i++)
-		{
-			if (AOEActive[i] == 1)
-			{
-				float AOEProgress = AOEAge[i] / AOE_duration;
-				float AOESize = rocket_AOE_radius * 2.0f * AOEProgress;
-
-			CP_Settings_Fill(CP_Color_Create(255, 140, 30, 150));
-			CP_Graphics_DrawCircle(AOEX[i], AOEY[i], AOESize);
-		}
-	}
-}
 //shop: draws the rockets and explosions only, without the single rocket drone circle (added by Elvis)
 //The shop now draws every drone, so rocket_system_draw is no longer called
 //UI: rockets are red-orange circles, explosions are orange circles that grow, then vanish
@@ -791,8 +628,6 @@ void rocket_projectiles_draw(void)
 	//Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
 		Swarm_Init(Diff_GetSwarmLevel(), 1);// spawb rate from main menu, 1 easy/ 2 normal/ 3 hard. swarm starts on swarm 1 now
 	combat_init();
-	drone_init();
-	machine_gun_drone_init();
 	rocket_drone_init();
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Shop_Init(); //shop; player starts w 1 basic drone, shop closed(Elvis)

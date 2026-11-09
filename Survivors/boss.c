@@ -6,11 +6,11 @@
 #include "diff.h"
 
 #define boss_size 70.0f
-#define boss_speed 250.0f
-#define boss_dash_speed 1100.0f
-#define boss_dash_distance 600.0f
-#define boss_phase2_speed 350.0f
-#define boss_phase2_dash_cooldown 1.0f
+#define boss_speed 180.0f
+#define boss_dash_speed 1000.0f
+#define boss_dash_distance 500.0f
+#define boss_phase2_speed 225.0f
+#define boss_phase2_dash_cooldown 1.25f
 #define boss_dash_cooldown 2.0f
 #define boss_lock_on_time 0.35f
 #define boss_collision_damage 15.0f
