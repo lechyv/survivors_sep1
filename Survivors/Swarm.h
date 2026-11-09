@@ -25,4 +25,5 @@ int Swarm_NumOfEnemiesTouching(float x, float y, float radius);
 int Swarm_AOE_Damage(float x, float y, float radius, float damage);
 void Swarm_Draw(void);
 void Swarm_SpawnBasic(float x, float y);
+void Swarm_SpawnTank(float x, float y);
 extern int swarm_auto_spawn;

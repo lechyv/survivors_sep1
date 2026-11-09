@@ -46,7 +46,7 @@ int combat_get_target(float x, float y, float range, CP_Vector* target);
 // fire rate, dmg and size copied from the drone
 const int shopDroneCost[DRONE_TYPE_COUNT] = { 5, 10, 15 }; // cost of each drone
 const float shopDroneFireRate[DRONE_TYPE_COUNT] = { 1.5f, 6.0f, 0.3f }; // seconds between shots]
-const float shopDroneDamage[DRONE_TYPE_COUNT] = { 10.0f, 5.0f, 0.0f }; // damage per shot
+const float shopDroneDamage[DRONE_TYPE_COUNT] = { 15.0f, 3.0f, 0.0f }; // damage per shot
 
 //UI
 const float shopDroneSize[DRONE_TYPE_COUNT] = { 16.0f, 14.0f, 18.0f }; // radius of each drone

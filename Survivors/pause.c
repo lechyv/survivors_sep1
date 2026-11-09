@@ -64,7 +64,7 @@ void Pause_Draw(void)
 	// ----- dark see-through layer over the whole game -----
 	CP_Settings_NoStroke(); //Don't throw stroke around the shape
 	CP_Settings_RectMode(CP_POSITION_CORNER); //set Rectangle drawing mode to the corner
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 160)); // Set Opacity to 160 so there'll be a see-through layer
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 180)); // Set Opacity to 160 so there'll be a see-through layer
 	CP_Graphics_DrawRect(0.0f, 0.0f, width, height);
 
 	// ----- title -----

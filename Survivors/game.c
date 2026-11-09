@@ -12,6 +12,7 @@
 #include "diff.h"
 #include "wave.h"
 #include "buff.h"
+#include "win.h"
 
 	extern int coinCount;
 
@@ -202,9 +203,9 @@
 	}
 	//Combat and Damage
 	#define max_bullets 128
-	#define bullet_speed 200.0f
+	#define bullet_speed 450.0f
 	#define bullet_radius 4.0f
-	#define bullet_lifetime 1.5f	//seconds before the bullet disappears
+	#define bullet_lifetime 2.0f	//seconds before the bullet disappears
 	#define player_radius 20.0f
 	#define player_health_max 100.0f
 	#define enemy_contact_damage 10.0f
@@ -539,8 +540,8 @@
 	void rocket_update(void)
 	{
 		float dt = CP_System_GetDt();
-		float w = (float)CP_System_GetWindowWidth();
-		float h = (float)CP_System_GetWindowHeight();
+		float w = world_width;
+		float h = world_height;
 
 		for (int i = 0; i < max_rockets; i++)
 		{
@@ -799,6 +800,7 @@ void rocket_projectiles_draw(void)
 	Buff_Init();
 	Pause_Init();
 	GameOver_Init();
+	win_init();
 	boss_reset();
 	runTime = 0.0f;
 
@@ -812,12 +814,12 @@ void rocket_projectiles_draw(void)
 
 void Game_Update(void)
 {
-	if (GameOver_IsActive() == 0 && Shop_IsOpen() == 0) //shop: ESC closes the shop instead of pausing while it is open
+	if (GameOver_IsActive() == 0 && Shop_IsOpen() == 0 && win_active() == 0) //shop: ESC closes the shop instead of pausing while it is open
 	{
 		Pause_HandleInput();
 	}
 	//shop: B opens / closes the shop, not while paused or dead (added by Elvis)
-	if (GameOver_IsActive() == 0 && Pause_IsPaused() == 0)
+	if (GameOver_IsActive() == 0 && Pause_IsPaused() == 0 && win_active() == 0)
 	{
 		Shop_HandleInput();
 	}
@@ -826,7 +828,7 @@ void Game_Update(void)
 
 	// ----- update: only while NOT paused and NOT dead -----
 	//if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0) (Brandon)
-	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0 && Shop_IsOpen() == 0) //shop: game also freezes while the shop is open (Elvis)
+	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0 && Shop_IsOpen() == 0 && win_active() == 0) //shop: game also freezes while the shop is open (Elvis)
 	{
 		runTime += CP_System_GetDt();
 
@@ -865,6 +867,7 @@ void Game_Update(void)
 		rocket_update();
 		bullet_update();
 		boss_update(CP_Vector_Set(playerX, playerY));
+
 		if (invulnTimer > 0.0f)
 		{
 			invulnTimer -= CP_System_GetDt();
@@ -877,7 +880,13 @@ void Game_Update(void)
 			// coin drop: kill enemies touching the player, drop a coin where each died,
 			// then pick up any coin the player is touching
 			Coins_Update(playerX, playerY, player_radius);
+
+			if (currentSwarm == 3 && bossActive == 0 && player_health > 0.0f && GameOver_IsActive() == 0)
+			{
+				win_start();
+			}
 		}
+
 
 	// ----- draw: always, so the game stays visible behind the overlays -----
 	CP_Settings_ResetMatrix();
@@ -910,11 +919,12 @@ void Game_Update(void)
 	Pause_Draw();
 
 		// player just died: start the game over screen
-		if (player_health <= 0.0f && GameOver_IsActive() == 0)
+		if (player_health <= 0.0f && GameOver_IsActive() == 0 && win_active() == 0)
 		{
 			GameOver_Start();
 		}
 		GameOver_Draw(coinCount, runTime);  
+		win_draw(coinCount, runTime);
 
 		
 		if (CP_Input_KeyTriggered(KEY_Q) && GameOver_IsActive() == 1)

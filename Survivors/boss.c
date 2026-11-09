@@ -6,14 +6,16 @@
 #include "diff.h"
 
 #define boss_size 70.0f
-#define boss_speed 150.0f
-#define boss_dash_speed 600.0f
-#define boss_dash_distance 350.0f
-#define boss_dash_cooldown 3.0f
-#define boss_lock_on_time 0.5f
+#define boss_speed 250.0f
+#define boss_dash_speed 1100.0f
+#define boss_dash_distance 600.0f
+#define boss_phase2_speed 350.0f
+#define boss_phase2_dash_cooldown 1.0f
+#define boss_dash_cooldown 2.0f
+#define boss_lock_on_time 0.35f
 #define boss_collision_damage 15.0f
 #define boss_dash_collision_damage 30.0f
-#define boss_summon_interval 4.0f
+#define boss_summon_interval 2.0f
 
 float bossX, bossY;
 float bossHealth;
@@ -22,7 +24,6 @@ float bossLockTimer;
 float bossdashRemaining;
 float bossDashX, bossDashY;
 float bossSummonTimer;
-
 extern float playerX;
 extern float playerY;
 
@@ -60,6 +61,15 @@ void boss_update(CP_Vector playerPos)
 
 	float dt = CP_System_GetDt();
 
+	float current_boss_speed = boss_speed;
+	float current_boss_dash_cooldown = boss_dash_cooldown;
+
+	if (bossPhase == 2)
+	{
+		current_boss_speed = boss_phase2_speed;
+		current_boss_dash_cooldown = boss_phase2_dash_cooldown;
+	}
+
 	float damage = bullet_check_if_hit(bossX, bossY, boss_size / 2.0f);
 	
 	if (damage > 0.0f)
@@ -80,7 +90,7 @@ void boss_update(CP_Vector playerPos)
 		{
 			Swarm_SpawnBasic(bossX - 100.0f, bossY);
 			Swarm_SpawnBasic(bossX + 100.0f, bossY);
-			Swarm_SpawnBasic(bossX, bossY + 100.0f);
+			Swarm_SpawnTank(bossX, bossY + 100.0f);
 			bossSummonTimer = boss_summon_interval;
 
 		}
@@ -94,8 +104,8 @@ void boss_update(CP_Vector playerPos)
 
 		if (distance > 0.01f)
 		{
-			bossX = bossX + ((dx / distance) * boss_speed * dt);
-			bossY = bossY + ((dy / distance) * boss_speed * dt);
+			bossX = bossX + ((dx / distance) * current_boss_speed * dt);
+			bossY = bossY + ((dy / distance) * current_boss_speed * dt);
 		}
 
 		bossDashTimer = bossDashTimer - dt;
@@ -133,7 +143,7 @@ void boss_update(CP_Vector playerPos)
 			else
 			{
 				bossState = 0;
-				bossDashTimer = boss_dash_cooldown;
+				bossDashTimer = current_boss_dash_cooldown;
 			}
 		}
 	}
@@ -154,7 +164,7 @@ void boss_update(CP_Vector playerPos)
 		if (bossdashRemaining <= 0.0f)
 		{
 			bossState = 0;
-			bossDashTimer = boss_dash_cooldown;
+			bossDashTimer = current_boss_dash_cooldown;
 		}
 	}
 }
