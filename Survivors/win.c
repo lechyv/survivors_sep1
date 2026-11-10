@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h>	//Needed for snprintf
 #include "cprocessing.h"
 #include "win.h"
 #include "game.h"
@@ -6,45 +6,51 @@
 #include "utils.h"
 #include "buff.h"
 
-static int did_player_win = 0;
+static int did_player_win = 0;	//1 once the boss is defeated and the victory screen is showing, otherwise 0
 
+//Resets the victory state when a new game starts
 void win_init(void)
 {
 	did_player_win = 0;
 }
 
+//Turns on the victory screen
 void win_start(void)
 {
 	did_player_win = 1;
 }
 
+//Returns 1 if the victory screen is showing
 int win_active(void)
 {
 	return did_player_win;
 }
 
+//Draws the victory screen, restart and main menu buttons
 void win_draw(int coins, float timeSurvived)
 {
-	if (did_player_win == 0)
+	if (did_player_win == 0)	//If statement to check if player has won
 	{
 		return;
 	}
 
-	float width = (float)CP_System_GetWindowWidth();
-	float height = (float)CP_System_GetWindowHeight();
-	float centerX = width / 2.0f;
+	float width = (float)CP_System_GetWindowWidth();	//Window width in pixels
+	float height = (float)CP_System_GetWindowHeight();	//Window height in pixels
+	float centerX = width / 2.0f;	//Horizontal centre, shared by all text and buttons
 
-	float restartY = height * 0.55f;
-	float menuY = height * 0.65f;
+	float restartY = height * 0.55f;	//Y-coordinate of the restart button
+	float menuY = height * 0.65f;		//Y-coordinate of the main menu button
 	float mouseX = CP_Input_GetMouseX();
 	float mouseY = CP_Input_GetMouseY();
 
+	//R key or clicking RESTART: start a new game.
 	if (CP_Input_KeyTriggered(KEY_R) || IsAreaClicked(centerX, restartY, 300.0f, 60.0f, mouseX, mouseY) == 1)
 	{
 		CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
 		return;
 	}
 
+	//Q key or clicking MAIN MENU: go back to the main menu
 	if (CP_Input_KeyTriggered(KEY_Q) || IsAreaClicked(centerX, menuY, 300.0f, 60.0f, mouseX, mouseY) == 1)
 	{
 		CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
