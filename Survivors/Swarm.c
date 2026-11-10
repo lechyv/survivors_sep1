@@ -158,38 +158,40 @@ static void Spawn_Enemy(int type)
     }
 }
 
-//Spawn basic enemy for boss fight phase 2
+//Spawn enemies for phase 2 of boss fight - Brandon
+
+//Function to spawn a basic enemy at a given position, used by the boss's phase 2 summon - Brandon
 void Swarm_SpawnBasic(float x, float y)
 {
-    for (int i = 0; i < max_enemies; i++)
+    for (int i = 0; i < max_enemies; i++)   //For loop to loop through all enemy indexes to find an inactive enemy
     {
-        if (enemy_active[i] == 0)
+        if (enemy_active[i] == 0)   //If statement to check if the enemy index is available
         {
-            enemy_pos[i] = CP_Vector_Set(x, y);
-            enemy_active[i] = 1;
-            enemy_type[i] = Enemy_Base;
-            enemy_health[i] = enemy_stats[Enemy_Base].max_health;
-            enemy_angle[i] = 0.0f;
-            enemy_fire_timer[i] = tank_fire_interval;
-            return;
+            enemy_pos[i] = CP_Vector_Set(x, y); //Sets the enemy's starting position to the given coordinates
+            enemy_active[i] = 1;    //Sets the enemy to active
+            enemy_type[i] = Enemy_Base; //Sets the enemy's type to a basic enemy
+            enemy_health[i] = enemy_stats[Enemy_Base].max_health;   //Sets the enemy's health to the basic enemy's maximum health
+            enemy_angle[i] = 0.0f;  //Resets the enemy's angle to 0
+            return; //Exits the function after spawning one enemy
 
         }
     }
 }
 
+//Function to spawn a tank enemy at a given position, used by the boss's phase 2 summon - Brandon
 void Swarm_SpawnTank(float x, float y)
 {
-    for (int i = 0; i < max_enemies; i++)
+    for (int i = 0; i < max_enemies; i++)   //For loop to loop through all enemy indexes to find an inactive enemy
     {
-        if (enemy_active[i] == 0)
+        if (enemy_active[i] == 0)   //If statement to check if the enemy index is available
         {
-            enemy_pos[i] = CP_Vector_Set(x, y);
-            enemy_active[i] = 1;
-            enemy_type[i] = Enemy_Tank;
-            enemy_health[i] = enemy_stats[Enemy_Tank].max_health;
-            enemy_angle[i] = 0.0f;
-            enemy_fire_timer[i] = tank_fire_interval;
-            return;
+            enemy_pos[i] = CP_Vector_Set(x, y); //Sets the enemy's starting position to the given coordinates
+            enemy_active[i] = 1;    //Sets the enemy to active
+            enemy_type[i] = Enemy_Tank; //Sets the enemy's type to a tank enemy
+            enemy_health[i] = enemy_stats[Enemy_Tank].max_health;   //Sets the enemy's health to the tank enemy's maximum health
+            enemy_angle[i] = 0.0f;  //Resets the enemy's angle to 0
+            enemy_fire_timer[i] = tank_fire_interval;   //Sets the time until the tank can fire its first shot
+            return; //Exits the function after spawning one enemy
 
         }
     }
@@ -454,36 +456,38 @@ void Swarm_Draw(void)
     Draw_Projectiles();
 }
 
+//Function to find the nearest active enemy within range and give its position as the target - Brandon
 int Swarm_GetNearest(float x, float y, float range, CP_Vector* target)
 {
-    if (target == NULL || range < 0.0f)
+    if (target == NULL || range < 0.0f) //If statement to check if no target variable was given or the range is negative
     {
-        return 0;
+        return 0;   //Returns 0 as there is nothing valid to search for
     }
 
-    int found = 0;
-    float nearest_distance_squared = range * range;
+    int found = 0;  //Checks if an enemy has been found (1) or not (0)
+    float nearest_distance_squared = range * range; //Starts as the squared range, so only enemies within range can be picked
 
-    for (int i = 0; i < max_enemies; i++)
+    for (int i = 0; i < max_enemies; i++)   //For loop to loop through all enemy indexes
     {
-        if (enemy_active[i] == 0)
+        if (enemy_active[i] == 0)   //If statement to check if the enemy is inactive
         {
-            continue;
+            continue;   //Skips the inactive enemy and moves on to the next index
         }
         
-        float dx = enemy_pos[i].x - x;
-        float dy = enemy_pos[i].y - y;
+        float dx = enemy_pos[i].x - x;  //Horizontal distance between the enemy and the shooter
+        float dy = enemy_pos[i].y - y;  //Vertical distance between the enemy and the shooter
 
-        float distance_squared = (dx * dx) + (dy * dy);
 
-        if (distance_squared < nearest_distance_squared)
+        float distance_squared = (dx * dx) + (dy * dy); //Squared distance between the enemy and the shooter
+
+        if (distance_squared < nearest_distance_squared)    //If statement to check if this enemy is closer than the nearest one found so far
         {
-            nearest_distance_squared = distance_squared;
-            *target = enemy_pos[i];
-            found = 1;
+            nearest_distance_squared = distance_squared;    //Updates the nearest distance to this enemy's distance
+            *target = enemy_pos[i]; //Stores this enemy's position in the target variable
+            found = 1;  //Sets found to 1 as an enemy is within range
         }
     }
-    return found;
+    return found;   //Returns 1 if an enemy was found within range, or 0 if there are none
 }
 
 int Swarm_KillEnemiesTouching(float x, float y, float radius, float* killed_x, float* killed_y, int max_killed)
@@ -512,57 +516,57 @@ int Swarm_KillEnemiesTouching(float x, float y, float radius, float* killed_x, f
     return killed;
 }
 
-//counts the number of enemies that touch the player
+//Function to count how many active enemies are touching the player - Brandon
 int Swarm_NumOfEnemiesTouching(float x, float y, float radius)
 {
-    int count = 0;
-    for (int i = 0; i < max_enemies; i++)
+    int count = 0;  //Total number of enemies touching the player
+    for (int i = 0; i < max_enemies; i++)   //For loop to loop through all enemy indexes
     {
-        if (enemy_active[i] == 0)
+        if (enemy_active[i] == 0)   //If statement to check if the enemy is inactive
         {
-            continue;
+            continue;   //Skips the inactive enemy and moves on to the next index
         }
-        float enemy_radius = enemy_stats[enemy_type[i]].size / 2.0f;
-        float combined_radius = radius + enemy_radius;
-        float dx = enemy_pos[i].x - x;
-        float dy = enemy_pos[i].y - y;
-        if ((dx * dx) + (dy * dy) <= (combined_radius * combined_radius))
+        float enemy_radius = enemy_stats[enemy_type[i]].size / 2.0f;    //Radius of this enemy, based on its type
+        float combined_radius = radius + enemy_radius;  //Combined radius of the enemy and the player
+        float dx = enemy_pos[i].x - x;  //Horizontal distance between the enemy and the player
+        float dy = enemy_pos[i].y - y;  //Vertical distance between the enemy and the player
+        if ((dx * dx) + (dy * dy) <= (combined_radius * combined_radius))   //If statement to check if the enemy and the player are touching
         {
-            count = count + 1;
+            count = count + 1;  //Adds this enemy to the total
         }
     }
-    return count;
+    return count;   //Returns the number of enemies touching the player
 }
 
 //Function for AOE Damage of rocket drone
 int Swarm_AOE_Damage(float x, float y, float radius, float damage)
 {
-    int killed = 0;
+    int killed = 0; //Total number of enemies killed by this explosion
     damage = Diff_ScaleDamageToEnemy(damage); //diff, scaled once, before the loop
-    for (int i = 0; i < max_enemies; i++)
+    for (int i = 0; i < max_enemies; i++)   //For loop to loop through all enemy indexes
     {
-        if (enemy_active[i] == 0)
+        if (enemy_active[i] == 0)   //If statement to check if the enemy is inactive
         {
-            continue;
+            continue;   //Skips the inactive enemy and moves on to the next index
         }
 
-        float dx = enemy_pos[i].x - x;
-        float dy = enemy_pos[i].y - y;
-        float max_hit_distance = radius + enemy_stats[enemy_type[i]].size / 2.0f;
+        float dx = enemy_pos[i].x - x;  //Horizontal distance between the enemy and the explosion
+        float dy = enemy_pos[i].y - y;  //Vertical distance between the enemy and the explosion
+        float max_hit_distance = radius + enemy_stats[enemy_type[i]].size / 2.0f;   //Furthest distance at which the explosion still reaches this enemy's edge
 
-        if (((dx * dx) + (dy * dy)) <= (max_hit_distance * max_hit_distance))
+        if (((dx * dx) + (dy * dy)) <= (max_hit_distance * max_hit_distance))   //If statement to check if the enemy is within the explosion
         {
-            enemy_health[i] = enemy_health[i] - damage;
+            enemy_health[i] = enemy_health[i] - damage; //Reduces the enemy's health by the damage received
 
 
-            if (enemy_health[i] <= 0.0f)
+            if (enemy_health[i] <= 0.0f)    //If statement to check if the enemy's health has reached 0
             {
                 Coins_Drop(enemy_pos[i].x, enemy_pos[i].y);
                 Buff_AddKill(); //buff: count the kill, every 10 kills = +10% damage
                 enemy_active[i] = 0;
-                killed++;
-            }
+                killed++;   //Adds this enemy to the kill count
+            }   
         }
     }
-    return killed;
+    return killed;  //Returns the number of enemies killed
 }

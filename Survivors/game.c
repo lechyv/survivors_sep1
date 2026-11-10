@@ -283,8 +283,8 @@
 	//Function to fire bullets from drones to a target - Brandon
 	void bullet_fire(float fromX, float fromY, float targetX, float targetY, float damage)
 	{
-		float dx = targetX - fromX;	//It is the horizontal distance between the drone and the target
-		float dy = targetY - fromY;	//It is the vertical distance between the drone and the target
+		float dx = targetX - fromX;	//Horizontal distance between the drone and the target
+		float dy = targetY - fromY;	//Vertical distance between the drone and the target
 		float distance = sqrtf((dx * dx) + (dy * dy));	//It is the actual distance between the drone and the target
 
 		if (distance < 0.01f)	//If statement to check if the drone and the target are extremely close to prevent division by zero or a very small number. 
@@ -472,7 +472,7 @@
 
 			CP_Vector target;	//Variable to store the position of the target 
 
-			if (combat_get_target(rocketX[i], rocketY[i], rocket_drone_range, &target) == 1)	//If statement to check if there is a boss or swarm enemy within the rocket's range and gets it's position
+			if (combat_get_target(rocketX[i], rocketY[i], rocket_drone_range, &target) == 1)	//If statement to check if there is a boss or swarm enemy within the rocket's range and gets its position
 			{
 				float dx = target.x - rocketX[i];	//Horizontal distance between the rocket and the target
 				float dy = target.y - rocketY[i];	//Vertical distance between the rocket and the target
@@ -643,24 +643,24 @@
 	//PLEASE DONT DELETE THIS UNLESS YOU ARE DONE WITH DIFFICULTY HANDLING
 	//Swarm_Init(1,2); //taking in int value of (difficulty, current stage). (Placeholder for now until someone prompts diificulty stage)
 		Swarm_Init(Diff_GetSwarmLevel(), 1);// spawb rate from main menu, 1 easy/ 2 normal/ 3 hard. swarm starts on swarm 1 now
-	combat_init();
-	rocket_drone_init();
+	combat_init();	//Initializes the player health and combat system - Brandon
+	rocket_drone_init();	//Resets all rockets and AOE effects - Brandon
 	Coins_Init(); //coin drop: no coins on the ground, coin count back to 0
 	Shop_Init(); //shop; player starts w 1 basic drone, shop closed(Elvis)
 	Wave_Init();
 	Buff_Init();
 	Pause_Init();
 	GameOver_Init();
-	win_init();
-	boss_reset();
+	win_init();	//Initializes the victory screen - Brandon
+	boss_reset();	//Resets the boss when a new game is started - Brandon
 	runTime = 0.0f;
 
-	swarmTimer = swarm_duration;
-	currentSwarm = 1;
+	swarmTimer = swarm_duration;	//Sets the swarm timer to 45 seconds - Brandon
+	currentSwarm = 1;				//Sets the starting stage to swarm 1 - Brandon
 
-	cameraX = 0.0f;
-	cameraY = 0.0f;
-	camera_update();
+	cameraX = 0.0f;		//Resets the camera's X-coordinate - Brandon
+	cameraY = 0.0f;		//Resets the camera's Y-coordinate - Brandon
+	camera_update();	//Updates the camera position to follow the player - Brandon
 }
 
 void Game_Update(void)
@@ -678,18 +678,17 @@ void Game_Update(void)
 		CP_Graphics_ClearBackground(CP_Color_Create(45, 20, 75, 255));
 
 	// ----- update: only while NOT paused and NOT dead -----
-	//if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0) (Brandon)
 	if (Pause_IsPaused() == 0 && GameOver_IsActive() == 0 && Shop_IsOpen() == 0 && win_active() == 0) //shop: game also freezes while the shop is open (Elvis)
 	{
 		runTime += CP_System_GetDt();
 
-		if (currentSwarm <= 2)
+		if (currentSwarm <= 2) //If statement to check if the game is currently in Swarm 1 or 2
 		{
-			swarmTimer = swarmTimer - CP_System_GetDt();
+			swarmTimer = swarmTimer - CP_System_GetDt();	//Decrease the swarm timer by the amount of time that has passed
 
-			if (swarmTimer <= 0.0f)
+			if (swarmTimer <= 0.0f)	//If statement to check if the swarm timer has reached 0
 			{
-				swarmTimer = 0.0f;
+				swarmTimer = 0.0f;	//Sets the swarm timer to 0 to prevent it from going below 0
 				if (Wave_IsOnBreak() == 0) //if the wave break is not already active, start it
 				{
 					Game_End_Swarm();
@@ -711,13 +710,10 @@ void Game_Update(void)
 
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
 		Player_Update();
-		//drone_update(); (Brandon)
-		//machine_gun_drone_update(); (Brandon)
-		//rocket_drone_update(); (Brandon)
 		Shop_UpdateDrones(); // shop; move and fires every drone in squad (Elvis)
-		rocket_update();
-		bullet_update();
-		boss_update(CP_Vector_Set(playerX, playerY));
+		rocket_update();	//Updates homing rockets and AOE effects - Brandon
+		bullet_update();	//Updates the bullet positions and remove expired bullets - Brandon
+		boss_update(CP_Vector_Set(playerX, playerY));	//Updates the boss using the player's position - Brandon
 
 		if (invulnTimer > 0.0f)
 		{
@@ -732,9 +728,9 @@ void Game_Update(void)
 			// then pick up any coin the player is touching
 			Coins_Update(playerX, playerY, player_radius);
 
-			if (currentSwarm == 3 && bossActive == 0 && player_health > 0.0f && GameOver_IsActive() == 0)
+			if (currentSwarm == 3 && bossActive == 0 && player_health > 0.0f && GameOver_IsActive() == 0)	//If statement to check if the boss is defeated and the player is still alive - Brandon
 			{
-				win_start();
+				win_start();	//Starts the victory screen - Brandon
 			}
 		}
 
@@ -743,23 +739,21 @@ void Game_Update(void)
 	CP_Settings_ResetMatrix();
 	CP_Graphics_ClearBackground(CP_Color_Create(45, 20, 75, 255));
 
-	camera_update();
+	camera_update();	//Updates the camera position to follow the player - Brandon
 	
-	CP_Settings_Translate(-cameraX, -cameraY);
+	CP_Settings_Translate(-cameraX, -cameraY);	//Shifts the view to follow the camera position - Brandon
 
-	world_draw_grid();
-	world_draw_border();
+	world_draw_grid();		//Draws the background grid - Brandon
+	world_draw_border();	//Draws the world boundaries - Brandon
 
 	Swarm_Draw();
 	Coins_Draw();          // coins are drawn under the player
 	Player_Draw();
-	//drone_draw();
-	//machine_gun_drone_draw(); (added by Brandon)
-	//rocket_system_draw(); (added by Brandon)
+
 	Shop_DrawDrones(); //shop: draws every drone in the squad (added by Elvis)
 	rocket_projectiles_draw(); //shop: rockets and explosions (added by Elvis)
-	bullet_draw();
-	boss_draw();
+	bullet_draw();	//Draws active bullets - Brandon
+	boss_draw();	//Draws the boss - Brandon
 
 	CP_Settings_ResetMatrix();
 
