@@ -41,12 +41,13 @@ typedef struct
 } Enemy_Stats; //each type Enemy_Stats has these parameters.
 
 //declaring an array named enemy_stats with a type of Enemy_Stats
+//Size of array = total enemies, hence use Enemy_Type_Count
 static const Enemy_Stats enemy_stats[Enemy_Type_Count] = 
 {
    // (speed, size,  hp,  spawn_multiplier) 
-    { 120.0f, 24.0f, 30.0f, 1.0f },   //base
-    { 220.0f, 18.0f, 10.0f, 3.0f },   //fast
-    {  70.0f, 36.0f, 90.0f, 8.0f }    //tank
+    { 120.0f, 24.0f, 30.0f, 1.0f },   //base 0
+    { 220.0f, 18.0f, 10.0f, 3.0f },   //fast 1
+    {  70.0f, 36.0f, 90.0f, 8.0f }    //tank 2
 };
 
 //Characteristics of each of the 200 enemies in the array
@@ -59,7 +60,7 @@ static float enemy_fire_timer[max_enemies];  //shows how long left till the enem
 
 //Projectile characteristics
 
-//Coordinate of the projectile
+//Coordinate of the projectile currently
 static CP_Vector projectile_pos[max_enemy_projectiles];
 //How many pixels it travels in a straight line from the initial x,y coordinate it was fired from
 static CP_Vector projectile_vel[max_enemy_projectiles];
@@ -90,7 +91,7 @@ float bullet_check_if_hit(float x, float y, float radius);
 /* Sets every type's spawn interval from the base enemy's interval.
    Change a type's spawn_multiplier above to make it rarer or more common.
    Set_Spawn_Interval uses argument from Set_Difficulty for the entire game*/
-static void Set_Spawn_Intervals(float base_interval)
+static void Set_Spawn_Intervals(float base_interval) //get base interval from set difficulty
 {
     for (int t = 0; t < Enemy_Type_Count; t++)
     {
@@ -114,7 +115,7 @@ static void Set_Difficulty(int difficulty)
 // Which types are allowed to spawn in the current stage 
 static int Type_Is_Enabled(int type)
 {
-    if (type == Enemy_Base)
+    if (type == Enemy_Base) //because true for all stages, supercede
     {
         return 1; //base enemy only
     }
