@@ -31,7 +31,7 @@ typedef enum
     Enemy_Type_Count //3 (total enemy count Base + Fast + Tank)
 } Enemy_Type;
 
-//Constructing a type Enemy_Stats for differing enemy types.
+//Constructing a type Enemy_Stats for differing enemy types stats. All enemies have these common stats throughout.
 typedef struct
 {
     float speed;             
