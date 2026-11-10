@@ -17,18 +17,18 @@
 	extern int coinCount;
 
 	/*Player state*/
-	float playerX, playerY;     // arrow position
-	float speed;                // player (arrow) speed
-#define player_radius 20.0f
-	float player_rotation;       //rotation angle (degrees)
+	float playerX, playerY;     // x,y position of player
+	float speed;                // player speed
+#define player_radius 20.0f	    
+	float player_rotation;       //rotation angle (degrees) to determine dash direction
 
 	float dashSpeed;            // speed while dashing
 	float dashDistance;         // distance of dash
 	float dashRemaining;        // distance left in the current dash (0 = not dashing)
 	float dashCooldown;         // seconds between dashes
-	float dashCooldownTimer;  
+	float dashCooldownTimer;	// seconds left until the next dash is allowed
 	float invulnTimer;          // seconds of invulnerability left after being hit
-	#define player_invuln_time 1.0f// seconds left until the next dash is allowed
+	#define player_invuln_time 1.0f //Period of invulnerability
 
 	#define world_width 2500.0f
 	#define world_height 2500.0f
@@ -126,15 +126,16 @@
 		// only move if at least one direction is held
 		if (dx != 0.0f || dy != 0.0f)
 		{
-			// normalize so diagonal movement isn't faster than straight movement
-			float length = sqrtf(dx * dx + dy * dy);
-			dx /= length;
-			dy /= length;
+			// normalize so diagonal movement isn't faster than straight movement (from Week 2 Vectors Slide 24)
+			float length = sqrtf(dx * dx + dy * dy); //distance formula
+			dx /= length; //normalize Vsum/Vsum Magnitude
+			dy /= length; //for both
 
-			playerX += dx * speed;
+			playerX += dx * speed; //normalized magnitude * speed = normalized speed
 			playerY += dy * speed;
 
 			// arrow angle in degrees (W = -90, S = 90, A = 180, D = 0, diagonals in between)
+			//Slide 18 Review
 			player_rotation = atan2f(dy, dx) * 180.0f / PI;
 		}
 	}
@@ -189,10 +190,11 @@
 		player_check_if_inside_boundary();
 	}
 
-	// Draws an orange arrow
+	// Draws player circle
 	void Player_Draw(void)
 	{
 		// blink while invulnerable: skip drawing every other 0.1s
+		//if (int)(invulnTimer * 10.0f) evaluates to odd, draw. Evaluates to even, return (skip draw).
 		if (invulnTimer > 0.0f && ((int)(invulnTimer * 10.0f) % 2 == 0))
 		{
 			return;
