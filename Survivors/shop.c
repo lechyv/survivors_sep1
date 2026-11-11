@@ -1,20 +1,3 @@
-/*
-UI GUIDE (for Weejie, delete after reading):
-Search this file for "UI:" to find every part that controls how the shop and drones look.
-Changing anything marked UI: only changes looks, not how the shop works.
-Gameplay numbers (cost, fire rate, damage, the 6-drone cap) are NOT UI, ask Elvis first.
-  - drone colours ............ Shop_SetDroneColor
-  - drone sizes .............. shopDroneSize
-  - drones on the map ........ Shop_DrawDrones
-  - "B: SHOP" hint ........... Shop_Draw, top part
-  - shop menu screen ......... Shop_Draw, rest of the function
-  - button size .............. SHOP_BUTTON_WIDTH / SHOP_BUTTON_HEIGHT
-  - button look (border, text) is drawn by menu_draw_button in mainmenu.c (shared with the
-    main menu and pause menu, so changing it changes those too)
-Colours are CP_Color_Create(red, green, blue, alpha), each 0 to 255 (alpha 255 = solid).
-Screen positions like "height * 0.18f" mean 18% of the way down the window,
-so the menu still lines up if the window size changes.
-*/
 #include <stdio.h>          // snprintf
 #include <math.h>           // cosf, sinf
 #include "cprocessing.h"
