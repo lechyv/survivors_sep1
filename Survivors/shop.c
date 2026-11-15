@@ -24,6 +24,8 @@ int combat_get_target(float x, float y, float range, CP_Vector* target);
 // UI related constants
 #define SHOP_BUTTON_WIDTH  640.0f
 #define SHOP_BUTTON_HEIGHT 60.0f
+#define SHOP_SELL_BUTTON_WIDTH 280.0f	//sell: width of the SELL button
+#define SHOP_SELL_BUTTON_GAP 20.0f		//sell: gap between the button and the SELL button
 
 //stats of each drone type, indexed by DRONE_BASIC/ DRONE_MACHINE_GUN / DRONE_ROCKET
 // fire rate, dmg and size copied from the drone
@@ -162,6 +164,49 @@ int Shop_BuyDrone(int type)
 	return 1;
 }
 
+//sell: count how many drones of this type the player has
+int Shop_CountType(int type) {
+	int count = 0;
+	int i = 0;
+	while (i < shopDroneCount) {
+		if (shopDroneType[i] == type) {
+			count += 1;
+		}
+		i += 1;
+	}
+	return count;
+}
+
+//sell: removes one drone of this type from the squad and refunds its full cost
+int Shop_SellDrone(int type) {
+	if (type < 0 || type >= DRONE_TYPE_COUNT) {
+		return 0;
+	}
+	if (shopDroneCount <= 1) {
+		shopMessage = "YOU MUST KEEP AT LEAST 1 DRONE";		//UI: text shown under the buttons
+		return 0;
+	}
+	// find the last drone of this type (search from the back of the squad)
+	int found = -1;
+	int i = shopDroneCount - 1;
+	while (i >= 0 && found == -1) {
+		if (shopDroneType[i] == type) {
+			found = i;
+		}
+		i -= 1;
+	}
+	if (found == -1) {
+		shopMessage = "YOU DONT HAVE THAT DRONE";		//UI: text shown under the buttons
+		return 0;
+	}
+	shopDroneCount -= 1;
+	Shop_PlaceDrones();		// re-space the squad so the gap closes right away
+
+	Coins_Add(shopDroneCost[type]);	//give back the full price
+	shopMessage = "DRONE SOLD";
+	return 1;
+}
+
 int Shop_GetDroneCount(void)
 {
 	return shopDroneCount;
@@ -291,6 +336,33 @@ void Shop_Draw(void)
 		Shop_SetDroneColor(type);
 		CP_Graphics_DrawCircle(centerX - SHOP_BUTTON_WIDTH / 2.0f + 40.0f, buttonY, shopDroneSize[type] * 1.5f);
 
+		//sell: SELL button to the right of the buy button
+		float sellX = centerX + SHOP_BUTTON_WIDTH / 2.0f + SHOP_SELL_BUTTON_GAP + SHOP_SELL_BUTTON_WIDTH / 2.0f;
+		int owned = Shop_CountType(type);
+
+		if (Pause_IsPaused() == 0 && IsAreaClicked(sellX, buttonY, SHOP_SELL_BUTTON_WIDTH, SHOP_BUTTON_HEIGHT, mouseX, mouseY) == 1) {
+			Shop_SellDrone(type);
+			owned = Shop_CountType(type);	//sell: update the count so this frame draws the new number
+		}
+
+		snprintf(text, sizeof(text), "SELL +%d", shopDroneCost[type]);	//UI: sell button label, e.g. "SELL +5"
+
+		//UI: red if the player can sell this drone, grey if they have none or it is their last drone
+		if (owned > 0 && shopDroneCount > 1){
+			menu_draw_button(sellX, buttonY, SHOP_SELL_BUTTON_WIDTH, SHOP_BUTTON_HEIGHT, text, CP_Color_Create(170, 60, 60, 255), CP_Color_Create(210, 90, 90, 255)); //UI: red, lighter red on hover
+		}
+		else
+		{
+			menu_draw_button(sellX, buttonY, SHOP_SELL_BUTTON_WIDTH, SHOP_BUTTON_HEIGHT, text, CP_Color_Create(90, 90, 90, 255), CP_Color_Create(90, 90, 90, 255)); //UI: grey, no hover change(cannot sell)
+		}
+
+		//UI: how many of this drone the player owns, left of the buy button (e.g. "x2")
+		snprintf(text, sizeof(text), "x%d", owned);
+		CP_Settings_NoStroke();
+		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));							//UI: owned count color(white)
+		CP_Settings_TextSize(20.0f);													//UI: owned count size
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);		//UI: s, y below is the text's right-middle
+		CP_Font_DrawText(text, centerX - SHOP_BUTTON_WIDTH / 2.0f - 16.0f, buttonY);	//UI: 16 px left of the buy button
 		type += 1;
 	}
 
@@ -302,5 +374,5 @@ void Shop_Draw(void)
 
 	CP_Settings_Fill(CP_Color_Create(200, 200, 200, 255));    //UI: hint colour (light grey)
 	CP_Settings_TextSize(14.0f);                              //UI: hint size
-	CP_Font_DrawText("CLICK A DRONE TO BUY    B / ESC: CLOSE SHOP", centerX, height * 0.86f); //UI: hint 86% down the screen
+	CP_Font_DrawText("CLICK A DRONE TO BUY, SELL TO GET ITS COST BACK    B / ESC: CLOSE SHOP", centerX, height * 0.86f); //UI: hint 86% down the screen
 }

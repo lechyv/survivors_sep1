@@ -28,6 +28,10 @@ int Shop_IsOpen(void);
 //Return 1 if bought. 0 if not bought or max squad
 int Shop_BuyDrone(int type);
 
+//sell: removes one drone of this type and gives back its full cost.
+//Return 1 if sold. 0 if the player has none of that type, or it is their last drone.
+int Shop_SellDrone(int type);
+
 //Return how many drones player has
 int Shop_GetDroneCount(void);
 
