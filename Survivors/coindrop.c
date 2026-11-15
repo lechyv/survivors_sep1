@@ -130,3 +130,10 @@ int Coins_Spend(int amount)
 	coinCount -= amount;
 	return 1;
 }
+
+//sell: gives coins back to the player when a drone is sold
+void Coins_Add(int amount) {
+	if (amount > 0) {
+		coinCount += amount;
+	}
+}

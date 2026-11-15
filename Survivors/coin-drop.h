@@ -34,3 +34,6 @@ int Coins_GetCount(void);
 //deduct coins from player after purchase
 // return 1 if coins were spent, 0 if player cannot afford
 int Coins_Spend(int amount);
+
+//sell: add coins back to the player (used only when a drone is sold)
+void Coins_Add(int amount);
