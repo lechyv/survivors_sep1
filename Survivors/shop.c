@@ -199,6 +199,14 @@ int Shop_SellDrone(int type) {
 		shopMessage = "YOU DONT HAVE THAT DRONE";		//UI: text shown under the buttons
 		return 0;
 	}
+	i = found;
+	while (i < shopDroneCount - 1) {
+		shopDroneType[i] = shopDroneType[i + 1];
+		shopDroneX[i] = shopDroneX[i + 1];
+		shopDroneY[i] = shopDroneY[i + 1];
+		shopDroneFireTimer[i] = shopDroneFireTimer[i + 1];
+		i += 1;
+	}
 	shopDroneCount -= 1;
 	Shop_PlaceDrones();		// re-space the squad so the gap closes right away
 
