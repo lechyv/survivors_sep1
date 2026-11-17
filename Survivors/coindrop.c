@@ -21,6 +21,9 @@ int coinCount; //how many coins player has collected
 
 CP_Font coinFont; //font for the coin counter (loaded only once)
 int coinFontLoaded = 0; //flag to check if font is loaded
+CP_Image coinImage;        //coin picture (loaded only once)
+int coinImageLoaded = 0;   //flag to check if the picture is loaded
+
 
 void Coins_Init(void)
 {
@@ -35,6 +38,11 @@ void Coins_Init(void)
 	if (!coinFontLoaded) {
 		coinFont = CP_Font_Load("assets/PressStart2P-Regular.ttf"); //to be edited by WeeJie for coinFont
 		coinFontLoaded = 1;
+	}
+
+	if (!coinImageLoaded) {
+		coinImage = CP_Image_Load("Assets/sprites/coin.png");
+		coinImageLoaded = 1;
 	}
 }
 
@@ -88,16 +96,24 @@ void Coins_Update(float playerX, float playerY, float playerRadius)
 
 void Coins_Draw(void)
 {
-	// gold coins with no outline (same style as the bullets)
 	CP_Settings_NoStroke();
 	CP_Settings_Fill(CP_Color_Create(255, 215, 0, 255));
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
 
 	int i = 0;
 	while (i < MAX_COINS)
 	{
 		if (coinActive[i] == 1)
 		{
-			CP_Graphics_DrawCircle(coinX[i], coinY[i], COIN_DIAMETER);
+			if (coinImage != NULL)
+			{
+				CP_Image_DrawAdvanced(coinImage, coinX[i], coinY[i],
+					COIN_DIAMETER * 1.5f, COIN_DIAMETER * 1.5f, 255, 0.0f);   //UI: coin picture size
+			}
+			else
+			{
+				CP_Graphics_DrawCircle(coinX[i], coinY[i], COIN_DIAMETER);
+			}
 		}
 		i += 1;
 	}

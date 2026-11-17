@@ -2,7 +2,7 @@
 #include "Swarm.h"
 #include "coin-drop.h" //coin-drop function
 #include <stddef.h>
-#include "game.h" // for world width and height (random spawn locations)ddddd
+#include "game.h" // for world width and height (random spawn locations)
 #include "diff.h"
 #include "buff.h"
 
@@ -49,6 +49,11 @@ static const Enemy_Stats enemy_stats[Enemy_Type_Count] =
     { 220.0f, 18.0f, 10.0f, 3.0f },   //fast 1
     {  70.0f, 36.0f, 90.0f, 8.0f }    //tank 2
 };
+
+static CP_Image enemyImages[Enemy_Type_Count];   //one picture per enemy type: base, fast, tank
+static CP_Image enemyProjImage;                  //tank bullet picture
+static int swarmImagesLoaded = 0;                //1 once the pictures are loaded
+
 
 //Characteristics of each of the 200 enemies in the array
 static CP_Vector enemy_pos[max_enemies]; //x,y coordiantes
@@ -329,6 +334,14 @@ static void Draw_Enemy(int i)
     float y = enemy_pos[i].y;
     float s = enemy_stats[enemy_type[i]].size;
 
+    //picture: the ships face down, so -90 turns them to face the player
+    if (enemyImages[enemy_type[i]] != NULL)
+    {
+        CP_Settings_ImageMode(CP_POSITION_CENTER);
+        CP_Image_DrawAdvanced(enemyImages[enemy_type[i]], x, y, s * 1.4f, s * 1.4f, 255, enemy_angle[i] - 90.0f);
+        return;   //picture drawn, skip the old shape
+    }
+
     switch (enemy_type[i])
     {
     case Enemy_Fast:   // pink triangle pointing at the player 
@@ -402,11 +415,22 @@ static void Draw_Projectiles(void)
 {
     CP_Settings_NoStroke();
     CP_Settings_Fill(CP_Color_Create(255, 90, 40, 255));
+    CP_Settings_ImageMode(CP_POSITION_CENTER);
+
     for (int i = 0; i < max_enemy_projectiles; i++)
     {
         if (projectile_active[i] == 1)
         {
-            CP_Graphics_DrawCircle(projectile_pos[i].x, projectile_pos[i].y, enemy_projectile_diameter);
+            if (enemyProjImage != NULL)
+            {
+                //point the bullet the way it is flying (picture is vertical, so +90)
+                float angle = atan2f(projectile_vel[i].y, projectile_vel[i].x) * 180.0f / pi + 90.0f;
+                CP_Image_DrawAdvanced(enemyProjImage, projectile_pos[i].x, projectile_pos[i].y, 8.0f, 20.0f, 255, angle);
+            }
+            else
+            {
+                CP_Graphics_DrawCircle(projectile_pos[i].x, projectile_pos[i].y, enemy_projectile_diameter);
+            }
         }
     }
 }
@@ -426,6 +450,15 @@ void Swarm_Init(int difficulty, int stage)
     for (int t = 0; t < Enemy_Type_Count; t++) spawn_timer[t] = 0.0f;
     for (int i = 0; i < max_enemies; i++) enemy_active[i] = 0;
     for (int i = 0; i < max_enemy_projectiles; i++) projectile_active[i] = 0;
+
+    if (swarmImagesLoaded == 0)
+    {
+        enemyImages[Enemy_Base] = CP_Image_Load("Assets/sprites/enemy_base.png");
+        enemyImages[Enemy_Fast] = CP_Image_Load("Assets/sprites/enemy_fast.png");
+        enemyImages[Enemy_Tank] = CP_Image_Load("Assets/sprites/enemy_tank.png");
+        enemyProjImage = CP_Image_Load("Assets/sprites/enemyProj.png");
+        swarmImagesLoaded = 1;
+    }
 }
 
 void Swarm_Update(CP_Vector player_pos)
