@@ -1,8 +1,4 @@
 #pragma once
-//For Wee Jie: Delete this after reading and editing
-// Shop_DrawDrones and Shop_Draw are for their colours, size and positions in shop.c
-//please amend them however u see fit, ty :) 
-
  
 
 //drone type (to be used with Shop_BuyDrone)

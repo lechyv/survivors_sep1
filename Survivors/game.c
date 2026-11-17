@@ -13,7 +13,11 @@
 #include "wave.h"
 #include "buff.h"
 #include "win.h"
+#include <stddef.h>
 
+	CP_Image playerImage;
+	CP_Image playerBulletImage;
+	int gameImagesLoaded = 0;
 	extern int coinCount;
 
 	/*Player state*/
@@ -198,19 +202,30 @@
 		player_check_if_inside_boundary();
 	}
 
-	// Draws player circle
-	void Player_Draw(void)
-	{
-		// blink while invulnerable: skip drawing every other 0.1s
-		//if (int)(invulnTimer * 10.0f) evaluates to odd, draw. Evaluates to even, return (skip draw).
-		if (invulnTimer > 0.0f && ((int)(invulnTimer * 10.0f) % 2 == 0))
-		{
-			return;
-		}
-		CP_Settings_NoStroke();
-		CP_Settings_Fill(CP_Color_Create(64, 224, 208, 255));   // turquoise
-		CP_Graphics_DrawCircle(playerX, playerY, player_radius * 2.0f);
-	}
+	 //draw player sprite
+	 void Player_Draw(void)
+	 {
+		 // blink while invulnerable: skip drawing every other 0.1s
+		 if (invulnTimer > 0.0f && ((int)(invulnTimer * 10.0f) % 2 == 0))
+		 {
+			 return;
+		 }
+
+		 if (playerImage != NULL)
+		 {
+			 //picture faces up, so +90 turns it to face the way the player moves
+			 CP_Settings_ImageMode(CP_POSITION_CENTER);
+			 CP_Image_DrawAdvanced(playerImage, playerX, playerY,
+				 player_radius * 2.4f, player_radius * 1.8f, 255, player_rotation + 90.0f);
+		 }
+		 else
+		 {
+			 CP_Settings_NoStroke();
+			 CP_Settings_Fill(CP_Color_Create(64, 224, 208, 255));   // turquoise
+			 CP_Graphics_DrawCircle(playerX, playerY, player_radius * 2.0f);
+		 }
+	 }
+
 	//Bullet Firing, Targeting, and Collision/Damage System - Brandon
 
 	//Constants for bullet behaviour
@@ -350,16 +365,28 @@
 	//Function to draw active bullets on the screen - Brandon
 	void bullet_draw(void)
 	{
-		CP_Settings_NoStroke();	//Prevents outlines from appearing around the bullets
-		CP_Settings_Fill(CP_Color_Create(255, 230, 150, 255));	//Sets the bullet's colour to light yellow
-		for (int i = 0; i < max_bullets; i++)	//For loop to loop through all bullet indexes
+		CP_Settings_NoStroke();
+		CP_Settings_Fill(CP_Color_Create(255, 230, 150, 255));
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+		for (int i = 0; i < max_bullets; i++)
 		{
-			if (bulletActive[i] == 1)	//If statement to check if the bullet is active
+			if (bulletActive[i] == 1)
 			{
-				CP_Graphics_DrawCircle(bulletX[i], bulletY[i], bullet_radius * 2.0f);	//Draws the bullet as a circle using its current position and diameter
+				if (playerBulletImage != NULL)
+				{
+					//point the bullet the way it is flying (picture is vertical, so +90)
+					float angle = atan2f(bulletYv[i], bulletXv[i]) * 180.0f / PI + 90.0f;
+					CP_Image_DrawAdvanced(playerBulletImage, bulletX[i], bulletY[i], 6.0f, 16.0f, 255, angle);
+				}
+				else
+				{
+					CP_Graphics_DrawCircle(bulletX[i], bulletY[i], bullet_radius * 2.0f);
+				}
 			}
 		}
 	}
+
 
 	//Function for targeting system for the drones, prioritizing the boss - Brandon
 	int combat_get_target(float x, float y, float range, CP_Vector* target)
@@ -661,6 +688,12 @@
 	cameraX = 0.0f;		//Resets the camera's X-coordinate - Brandon
 	cameraY = 0.0f;		//Resets the camera's Y-coordinate - Brandon
 	camera_update();	//Updates the camera position to follow the player - Brandon
+	if (gameImagesLoaded == 0)
+	{
+		playerImage = CP_Image_Load("Assets/sprites/player.png");
+		playerBulletImage = CP_Image_Load("Assets/sprites/playerProj.png");
+		gameImagesLoaded = 1;
+	}
 }
 
 void Game_Update(void)
@@ -759,7 +792,6 @@ void Game_Update(void)
 
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
 	Wave_Draw(); // wave break, prints message "SWARM 1 cleared'
-	Buff_Draw(); //buff: "DMG +10%" text in the bottom-left corner
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();
 

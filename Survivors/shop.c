@@ -1,5 +1,6 @@
 #include <stdio.h>          // snprintf
 #include <math.h>           // cosf, sinf
+#include <stddef.h>         // NULL (for the drone pictures)
 #include "cprocessing.h"
 #include "shop.h"
 #include "coin-drop.h"      // Coins_Spend, Coins_GetCount
@@ -7,7 +8,6 @@
 #include "mainmenu.h"       // menu_draw_button
 #include "utils.h"          // IsAreaClicked
 #include "pause.h"          // Pause_IsPaused
-
 
 // player pos and firing functions from game.c
 extern float playerX;
@@ -26,15 +26,20 @@ int combat_get_target(float x, float y, float range, CP_Vector* target);
 #define SHOP_BUTTON_HEIGHT 60.0f
 #define SHOP_SELL_BUTTON_WIDTH 280.0f	//sell: width of the SELL button
 #define SHOP_SELL_BUTTON_GAP 20.0f		//sell: gap between the button and the SELL button
+#define DRONE_PICTURE_SCALE 1.5f		//UI: drone pictures are drawn this many times bigger than the old circles
 
 //stats of each drone type, indexed by DRONE_BASIC/ DRONE_MACHINE_GUN / DRONE_ROCKET
 // fire rate, dmg and size copied from the drone
 const int shopDroneCost[DRONE_TYPE_COUNT] = { 5, 10, 15 }; // cost of each drone
-const float shopDroneFireRate[DRONE_TYPE_COUNT] = { 1.5f, 6.0f, 0.3f }; // seconds between shots]
+const float shopDroneFireRate[DRONE_TYPE_COUNT] = { 1.5f, 6.0f, 0.3f }; // shots per second
 const float shopDroneDamage[DRONE_TYPE_COUNT] = { 15.0f, 3.0f, 0.0f }; // damage per shot
 
 //UI
-const float shopDroneSize[DRONE_TYPE_COUNT] = { 16.0f, 14.0f, 18.0f }; // radius of each drone
+const float shopDroneSize[DRONE_TYPE_COUNT] = { 16.0f, 14.0f, 18.0f }; // diameter of each drone circle
+
+//UI: drone pictures, one per type (loaded once in Shop_Init) - Wee Jie
+CP_Image shopDroneImages[DRONE_TYPE_COUNT];
+int shopDroneImagesLoaded = 0;	//1 once the pictures are loaded
 
 //squad data: slot 0 to shopdronecount - 1 are in use
 int shopDroneType[SHOP_MAX_DRONES];
@@ -61,21 +66,39 @@ const char* Shop_DroneName(int type)
 	return "BASIC";
 }
 
-// UI: colour of each drone type, used for the drones on the map AND the dots in the shop menu. (same colours as the old drones in game.c) 
-
+// UI: colour of each drone type. Only used if a drone picture is missing.
+// Colours match the pictures: basic = yellow ring, machine gun = blue ring, rocket = green ring
 void Shop_SetDroneColor(int type)
 {
 	if (type == DRONE_MACHINE_GUN)
 	{
-		CP_Settings_Fill(CP_Color_Create(255, 180, 50, 255));   //orange
+		CP_Settings_Fill(CP_Color_Create(90, 170, 230, 255));   //blue
 	}
 	else if (type == DRONE_ROCKET)
 	{
-		CP_Settings_Fill(CP_Color_Create(100, 160, 255, 255));  //blue
+		CP_Settings_Fill(CP_Color_Create(120, 200, 80, 255));   //green
 	}
 	else
 	{
-		CP_Settings_Fill(CP_Color_Create(80, 220, 170, 244));   //green
+		CP_Settings_Fill(CP_Color_Create(240, 200, 60, 255));   //yellow
+	}
+}
+
+// UI: draws one drone of 'type' centred on (x, y): its picture, or a coloured circle if the picture is missing.
+// 'size' is the old circle diameter. Used for the drones on the map AND the icons in the shop menu
+void Shop_DrawDroneIcon(int type, float x, float y, float size)
+{
+	if (shopDroneImages[type] != NULL)
+	{
+		float pictureSize = size * DRONE_PICTURE_SCALE;
+		CP_Settings_ImageMode(CP_POSITION_CENTER);   //(x, y) is the middle of the picture
+		CP_Image_DrawAdvanced(shopDroneImages[type], x, y, pictureSize, pictureSize, 255, 0.0f);
+	}
+	else
+	{
+		CP_Settings_NoStroke();
+		Shop_SetDroneColor(type);
+		CP_Graphics_DrawCircle(x, y, size);
 	}
 }
 
@@ -91,8 +114,6 @@ void Shop_PlaceDrones(void)
 		i += 1;
 	}
 }
-
-
 
 // adds a drone to the squad for free. Returns 1 if added, 0 if the squad is full 
 int Shop_AddDrone(int type)
@@ -110,6 +131,15 @@ int Shop_AddDrone(int type)
 
 void Shop_Init(void)
 {
+	//UI: load the drone pictures only once (Shop_Init runs again on every restart) - Wee Jie
+	if (shopDroneImagesLoaded == 0)
+	{
+		shopDroneImages[DRONE_BASIC] = CP_Image_Load("Assets/sprites/d_basic.png");
+		shopDroneImages[DRONE_MACHINE_GUN] = CP_Image_Load("Assets/sprites/d_machinegun.png");
+		shopDroneImages[DRONE_ROCKET] = CP_Image_Load("Assets/sprites/d_rocket.png");
+		shopDroneImagesLoaded = 1;
+	}
+
 	shopDroneCount = 0;
 	shopOrbitAngle = 0.0f;
 	shopOpen = 0;
@@ -253,19 +283,14 @@ void Shop_UpdateDrones(void)
 	}
 }
 
-
-// UI: draws each drone as a plain circle (no outline) in its type's colour and size.
-// To use pictures instead, load them once in Shop_Init with CP_Image_Load and
-// replace CP_Graphics_DrawCircle below with CP_Image_Draw at the same x, y 
+// UI: draws every drone in the squad as its picture (or a circle if the picture is missing)
 void Shop_DrawDrones(void)
 {
-	CP_Settings_NoStroke(); //UI: no outline. Use CP_Settings_Stroke + CP_Settings_StrokeWeight for one
-
 	int i = 0;
 	while (i < shopDroneCount)
 	{
-		Shop_SetDroneColor(shopDroneType[i]);
-		CP_Graphics_DrawCircle(shopDroneX[i], shopDroneY[i], shopDroneSize[shopDroneType[i]]);
+		int type = shopDroneType[i];
+		Shop_DrawDroneIcon(type, shopDroneX[i], shopDroneY[i], shopDroneSize[type]);
 		i += 1;
 	}
 }
@@ -338,11 +363,9 @@ void Shop_Draw(void)
 				CP_Color_Create(90, 90, 90, 255), CP_Color_Create(90, 90, 90, 255));      //UI: grey, no hover change (cannot buy)
 		}
 
-		// UI: drone colour dot on the left of the button, so players can tell which drone is which.
+		// UI: drone icon on the left of the button, so players can tell which drone is which.
 		//  40 px in from the button's left edge, 1.5x the drone's size on the map 
-		CP_Settings_NoStroke();
-		Shop_SetDroneColor(type);
-		CP_Graphics_DrawCircle(centerX - SHOP_BUTTON_WIDTH / 2.0f + 40.0f, buttonY, shopDroneSize[type] * 1.5f);
+		Shop_DrawDroneIcon(type, centerX - SHOP_BUTTON_WIDTH / 2.0f + 40.0f, buttonY, shopDroneSize[type] * 1.5f);
 
 		//sell: SELL button to the right of the buy button
 		float sellX = centerX + SHOP_BUTTON_WIDTH / 2.0f + SHOP_SELL_BUTTON_GAP + SHOP_SELL_BUTTON_WIDTH / 2.0f;
@@ -356,7 +379,7 @@ void Shop_Draw(void)
 		snprintf(text, sizeof(text), "SELL +%d", shopDroneCost[type]);	//UI: sell button label, e.g. "SELL +5"
 
 		//UI: red if the player can sell this drone, grey if they have none or it is their last drone
-		if (owned > 0 && shopDroneCount > 1){
+		if (owned > 0 && shopDroneCount > 1) {
 			menu_draw_button(sellX, buttonY, SHOP_SELL_BUTTON_WIDTH, SHOP_BUTTON_HEIGHT, text, CP_Color_Create(170, 60, 60, 255), CP_Color_Create(210, 90, 90, 255)); //UI: red, lighter red on hover
 		}
 		else
@@ -369,7 +392,7 @@ void Shop_Draw(void)
 		CP_Settings_NoStroke();
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));							//UI: owned count color(white)
 		CP_Settings_TextSize(20.0f);													//UI: owned count size
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);		//UI: s, y below is the text's right-middle
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_MIDDLE);		//UI: x, y below is the text's right-middle
 		CP_Font_DrawText(text, centerX - SHOP_BUTTON_WIDTH / 2.0f - 16.0f, buttonY);	//UI: 16 px left of the buy button
 		type += 1;
 	}

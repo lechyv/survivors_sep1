@@ -4,6 +4,7 @@
 #include "Swarm.h"
 #include "math.h"
 #include "diff.h"
+#include <stddef.h> 
 
 //Constants for boss behaviour - Brandon
 #define boss_size 70.0f						//Diameter of the boss
@@ -32,10 +33,18 @@ extern float playerY;						//Player's Y-coordinate from game.c
 int bossActive;		//Checks if the boss is alive(1) or not(0)
 int bossPhase;		//Current phase of the boss (1 or 2)
 int bossState;		//Current action of the boss (0 = chasing, 1 = locking on, 2 = dashing)
+CP_Image bossImage;        //boss picture (loaded only once)
+int bossImageLoaded = 0;   //1 once the picture is loaded
 
 //Function to start the boss fight and set the boss's starting values - Brandon
 void boss_init(void)
 {
+	if (bossImageLoaded == 0)
+	{
+		bossImage = CP_Image_Load("Assets/sprites/boss.png");
+		bossImageLoaded = 1;
+	}
+
 	bossX = playerX + 300.0f;			//Spawns the boss 300 pixels to the right of the player
 	bossY = playerY;					//Spawns the boss at the same height as the player
 
@@ -181,6 +190,25 @@ void boss_draw(void)
 	}
 
 	CP_Settings_NoStroke();	//Prevents an outline from appearing around the boss
+
+	if (bossImage != NULL)	//If statement to check if the boss picture loaded
+	{
+		if (bossState == 1)	//Locking on: yellow glow
+		{
+			CP_Settings_Fill(CP_Color_Create(255, 200, 50, 140));
+			CP_Graphics_DrawCircle(bossX, bossY, boss_size * 1.4f);
+		}
+		else if (bossState == 2)	//Dashing: red glow
+		{
+			CP_Settings_Fill(CP_Color_Create(255, 50, 50, 140));
+			CP_Graphics_DrawCircle(bossX, bossY, boss_size * 1.4f);
+		}
+
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Image_DrawAdvanced(bossImage, bossX, bossY, boss_size, boss_size, 255, 0.0f);
+		return;	//Picture drawn, skip the old circle
+	}
+
 
 	if (bossState == 1)	//If statement to check if the boss is locking on
 	{
