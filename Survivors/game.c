@@ -141,10 +141,10 @@
 		float dx = 0.0f;
 		float dy = 0.0f;
 
-		if (CP_Input_KeyDown(KEY_W)) dy -= 1.0f;
-		if (CP_Input_KeyDown(KEY_S)) dy += 1.0f;
-		if (CP_Input_KeyDown(KEY_A)) dx -= 1.0f;
-		if (CP_Input_KeyDown(KEY_D)) dx += 1.0f;
+		if (CP_Input_KeyDown(KEY_W) || CP_Input_KeyDown(KEY_UP)) dy -= 1.0f;
+		if (CP_Input_KeyDown(KEY_S) || CP_Input_KeyDown(KEY_DOWN))  dy += 1.0f;
+		if (CP_Input_KeyDown(KEY_A) || CP_Input_KeyDown(KEY_LEFT))dx -= 1.0f;
+		if (CP_Input_KeyDown(KEY_D) || CP_Input_KeyDown(KEY_RIGHT)) dx += 1.0f;
 
 		// only move if at least one direction is held
 		if (dx != 0.0f || dy != 0.0f)
