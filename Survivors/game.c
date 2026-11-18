@@ -64,6 +64,13 @@
 	//Variable for tracking the total game time
 	float runTime;	//Total time the player has survived in seconds
 
+	//Minimap settings
+	#define minimap_size 180.0f
+	#define minimap_margin 20.0f
+
+	extern float bossX;
+	extern float bossY;
+
 	#define PI 3.14159265f
 
 	//Function to draw the world borders - Brandon
@@ -695,6 +702,75 @@
 		}
 	}
 
+	//Function to draw the minimap at the top right of the screen
+	void minimap_draw(void)
+	{
+		float windowWidth = (float)CP_System_GetWindowWidth();
+		float windowHeight = (float)CP_System_GetWindowHeight();
+
+		float mapX = windowWidth - minimap_size - minimap_margin;
+		float mapY = minimap_margin;
+
+		//Draws the minimap background and border
+		CP_Settings_RectMode(CP_POSITION_CORNER);
+		CP_Settings_Fill(CP_Color_Create(15, 15, 25, 230));
+		CP_Settings_Stroke(CP_Color_Create(180, 180, 180, 255));
+		CP_Settings_StrokeWeight(2.0f);
+
+		CP_Graphics_DrawRect(mapX, mapY, minimap_size, minimap_size);
+
+		//Finds the part of the world currently shown by the camera
+		float viewLeft = CP_Math_ClampFloat(cameraX, 0.0f, world_width);
+		float viewTop = CP_Math_ClampFloat(cameraY, 0.0f, world_height);
+		float viewRight = CP_Math_ClampFloat(cameraX + windowWidth, 0.0f, world_width);
+		float viewBottom = CP_Math_ClampFloat(cameraY + windowHeight, 0.0f, world_height);
+
+		//Converts the camera view into minimap coordinates
+		float viewX = mapX + (viewLeft / world_width) * minimap_size;
+		float viewY = mapY + (viewTop / world_height) * minimap_size;
+
+		float viewWidth = ((viewRight - viewLeft) / world_width) * minimap_size;
+		float viewHeight = ((viewBottom - viewTop) / world_height) * minimap_size;
+
+		//Draws a white outline around the visible area
+		CP_Settings_NoFill();
+		CP_Settings_Stroke(CP_Color_Create(255, 255, 255, 180));
+		CP_Settings_StrokeWeight(1.0f);
+
+		CP_Graphics_DrawRect(viewX, viewY, viewWidth, viewHeight);
+
+		CP_Settings_NoStroke();
+
+		//Draws active enemies as red dots
+		Swarm_DrawMinimap(mapX, mapY, minimap_size);
+
+		if (bossActive == 1)
+		{
+			//Converts the boss's position into a minimap position
+			float bossMapX = mapX + (bossX / world_width) * minimap_size;
+			float bossMapY = mapY + (bossY / world_height) * minimap_size;
+
+			bossMapX = CP_Math_ClampFloat(bossMapX, mapX + 5.0f, mapX + minimap_size - 5.0f);
+			bossMapY = CP_Math_ClampFloat(bossMapY, mapY + 5.0f, mapY + minimap_size - 5.0f);
+
+			CP_Settings_Fill(CP_Color_Create(255, 80, 220, 255));
+			CP_Graphics_DrawCircle(bossMapX, bossMapY, 10.0f);
+		}
+
+		//Converts the player's position into a minimap position
+		float playerMapX = mapX + (playerX / world_width) * minimap_size;
+		float playerMapY = mapY + (playerY / world_height) * minimap_size;
+
+		playerMapX = CP_Math_ClampFloat(playerMapX, mapX + 4.0f, mapX + minimap_size - 4.0f);
+		playerMapY = CP_Math_ClampFloat(playerMapY, mapY + 4.0f, mapY + minimap_size - 4.0f);
+
+		//Draws the player last so enemies cannot cover the marker
+		CP_Settings_Fill(CP_Color_Create(80, 255, 120, 255));
+		CP_Graphics_DrawCircle(playerMapX, playerMapY, 8.0f);
+
+		CP_Settings_NoStroke(); //Prevents outlines from affecting other drawings
+	}
+
 	void Game_Init(void)
 	{
 		//have a function for difficulty (include mainmenu.h in this file
@@ -863,6 +939,7 @@ void Game_Update(void)
 	CP_Settings_ResetMatrix();
 
 	HUD_Draw(player_health, player_health_max, coinCount, dashCooldownTimer, dashCooldown, runTime, swarmTimer);
+	minimap_draw();
 	Wave_Draw(); // wave break, prints message "SWARM 1 cleared'
 	Shop_Draw(); //shop menu, press "B" on keyboard
 	Pause_Draw();

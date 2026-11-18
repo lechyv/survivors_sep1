@@ -603,3 +603,28 @@ int Swarm_AOE_Damage(float x, float y, float radius, float damage)
     }
     return killed;  //Returns the number of enemies killed
 }
+
+//Function to draw enemies on the minimap
+void Swarm_DrawMinimap(float mapX, float mapY, float mapSize)
+{
+    CP_Settings_NoStroke();
+    CP_Settings_Fill(CP_Color_Create(255, 70, 70, 255));
+
+    for (int i = 0; i < max_enemies; i++)
+    {
+        if (enemy_active[i] == 0)
+        {
+            continue; //Skips inactive enemies
+        }
+
+        //Converts the enemy's world position into a minimap position
+        float enemyMapX = mapX + (enemy_pos[i].x / world_width) * mapSize;
+        float enemyMapY = mapY + (enemy_pos[i].y / world_height) * mapSize;
+
+        //Keeps the whole marker inside the minimap
+        enemyMapX = CP_Math_ClampFloat(enemyMapX, mapX + 2.0f, mapX + mapSize - 2.0f);
+        enemyMapY = CP_Math_ClampFloat(enemyMapY, mapY + 2.0f, mapY + mapSize - 2.0f);
+
+        CP_Graphics_DrawCircle(enemyMapX, enemyMapY, 4.0f);
+    }
+}

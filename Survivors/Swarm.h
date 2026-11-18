@@ -27,3 +27,4 @@ void Swarm_Draw(void);
 void Swarm_SpawnBasic(float x, float y);
 void Swarm_SpawnTank(float x, float y);
 extern int swarm_auto_spawn;
+void Swarm_DrawMinimap(float mapX, float mapY, float mapSize);
