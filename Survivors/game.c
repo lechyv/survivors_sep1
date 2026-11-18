@@ -48,6 +48,7 @@
 	//World Dimensions in pixels - Brandon
 	#define world_width 2500.0f
 	#define world_height 2500.0f
+	#define BORDER_THICKNESS 150.0f
 
 	//Camera position in world - Brandon
 	float cameraX;
@@ -71,8 +72,8 @@
 		CP_Settings_RectMode(CP_POSITION_CORNER);	//Sets the rectangle position to start from the top left corner
 		CP_Settings_NoFill();	//Removes the fill colour so that only the rectangle outline is visible
 
-		CP_Settings_Stroke(CP_Color_Create(255, 50, 50, 255));	//Sets the border colour to red
-		CP_Settings_StrokeWeight(5.0f);	//Sets the thickness of the border to 5 pixels.
+		CP_Settings_Stroke(CP_Color_Create(255, 50, 50, 200));	//Sets the border colour to red
+		CP_Settings_StrokeWeight(BORDER_THICKNESS);	//Sets the thickness of the border to 5 pixels.
 
 		CP_Graphics_DrawRect(0.0f, 0.0f, world_width, world_height);	//Draws the border from (0,0) using the world width and world height
 		CP_Settings_NoStroke();	//Ensures that the red outline is not drawn for objects drawn after the border
@@ -166,24 +167,26 @@
 	//Function to prevent player from going outside the world boundaries - Brandon 
 	void player_check_if_inside_boundary(void)
 	{
-		if (playerX < player_radius)	//If statement to check if player has moved past the left boundary
+		float inset = BORDER_THICKNESS / 2.0f + player_radius;
+
+		if (playerX < inset)	//If statement to check if player has moved past the left boundary
 		{
-			playerX = player_radius;	//Moves the player back inside the left boundary
+			playerX = inset;	//Moves the player back inside the left boundary
 		}
 
-		if (playerX > world_width - player_radius)	//If statement to check if player has moved past the right boundary
+		if (playerX > world_width  - inset)	//If statement to check if player has moved past the right boundary
 		{
-			playerX = world_width - player_radius;	//Moves the player back inside the right boundary
+			playerX = world_width  - inset;	//Moves the player back inside the right boundary
 		}
 
-		if (playerY < player_radius)	//If statement to check if the player has moved past the top boundary
+		if (playerY < inset)	//If statement to check if the player has moved past the top boundary
 		{
-			playerY = player_radius;	//Moves the player back inside the top boundary
+			playerY = inset;	//Moves the player back inside the top boundary
 		}
 
-		if (playerY > world_height - player_radius)	//If statement to check if the player has moved past the bottom boundary
+		if (playerY > world_height  - inset)	//If statement to check if the player has moved past the bottom boundary
 		{
-			playerY = world_height - player_radius;	//Moves the player back inside the bottom boundary
+			playerY = world_height  - inset;	//Moves the player back inside the bottom boundary
 		}
 	}
 
