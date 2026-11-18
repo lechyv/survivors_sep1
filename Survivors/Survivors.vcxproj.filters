@@ -57,6 +57,12 @@
     <ClCompile Include="buff.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="win.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Controls.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Swarm.h">
@@ -96,6 +102,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="buff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Controls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

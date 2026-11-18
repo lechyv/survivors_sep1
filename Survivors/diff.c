@@ -3,6 +3,7 @@
 #include "mainmenu.h"   // menuDifficulty, difficulty_easy/normal/hard, menu_draw_button
 #include "utils.h"      // IsAreaClicked
 #include "game.h"
+#include "controls.h"
 
 #define DIFF_EASY_MULTIPLIER 0.75f
 #define DIFF_NORMAL_MULTIPLIER 1.0f
@@ -110,7 +111,7 @@ void Diff_Select_Update(void)
 		if (IsAreaClicked(buttonX, buttonY, DIFF_BUTTON_WIDTH, DIFF_BUTTON_HEIGHT, mouseX, mouseY) == 1)
 		{
 			menuDifficulty = level;
-			CP_Engine_SetNextGameState(Game_Init, Game_Update, Game_Exit);
+			CP_Engine_SetNextGameState(Controls_Init, Controls_Update, Controls_Exit);
 		}
 		level += 1;
 	}
