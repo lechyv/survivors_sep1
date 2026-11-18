@@ -15,6 +15,17 @@
 #include "win.h"
 #include <stddef.h>
 
+	//Audio
+	CP_Sound shootSound = NULL;
+	CP_Sound explosionSound = NULL;
+	CP_Sound hurtSound = NULL;
+
+	float shootSoundTimer = 0.0f;
+	float explosionSoundTimer = 0.0f;
+
+	#define shoot_sound_interval 0.08f
+	#define explosion_sound_interval 0.12f
+
 	CP_Image playerImage;
 	CP_Image playerBulletImage;
 	int gameImagesLoaded = 0;
@@ -287,6 +298,14 @@
 		}
 
 		player_health = player_health - amount;	//Reduces the player's health by the damage received
+
+		CP_Sound_PlayAdvanced(
+			hurtSound,
+			0.5f,
+			1.0f,
+			0,
+			CP_SOUND_GROUP_SFX
+		);
 		if (player_health < 0.0f)	//If statement to check if player's health goes below 0
 		{
 			player_health = 0.0f;	//Sets the player's health to 0 to prevent it from going negative
@@ -318,6 +337,18 @@
 				bulletYv[i] = (dy / distance) * bullet_speed;	//Sets the bullet's vertical velocity along the Y-axis towards the target
 				bulletAge[i] = 0.0f;	//Resets the bullet's age to 0 when fired
 				bulletDamage[i] = Buff_ScaleDamage(damage); //Applies the damage buff to the bullet
+				if (shootSoundTimer <= 0.0f)
+				{
+					CP_Sound_PlayAdvanced(
+						shootSound,
+						0.15f,
+						1.0f,
+						0,
+						CP_SOUND_GROUP_SFX
+					);
+
+					shootSoundTimer = shoot_sound_interval;
+				}
 				break;	//Stops the for loop after firing a bullet
 			}
 		}
@@ -459,6 +490,20 @@
 	//Function to deal AOE damage to nearby enemies and the boss - Brandon
 	void rocket_AOE(float x, float y)
 	{
+
+		if (explosionSoundTimer <= 0.0f)
+		{
+			CP_Sound_PlayAdvanced(
+				explosionSound,
+				0.35f,
+				1.0f,
+				0,
+				CP_SOUND_GROUP_SFX
+			);
+
+			explosionSoundTimer = explosion_sound_interval;
+		}
+
 		Swarm_AOE_Damage(x, y, rocket_AOE_radius, Buff_ScaleDamage(rocket_damage));	//Deals AOE damage to nearby swarm enemies and applies the damage buff
 		boss_take_AOE_damage(x, y, rocket_AOE_radius, Buff_ScaleDamage(rocket_damage));	//Deals AOE damage to the boss if it's within range and applies the damage buff
 
@@ -694,6 +739,14 @@
 		playerBulletImage = CP_Image_Load("Assets/sprites/playerProj.png");
 		gameImagesLoaded = 1;
 	}
+
+	//Audio
+	shootSound = CP_Sound_Load("Assets/Audio/shoot.ogg");
+	explosionSound = CP_Sound_Load("Assets/Audio/explosion.ogg");
+	hurtSound = CP_Sound_Load("Assets/Audio/hurt.ogg");
+
+	shootSoundTimer = 0.0f;
+	explosionSoundTimer = 0.0f;
 }
 
 void Game_Update(void)
@@ -739,6 +792,16 @@ void Game_Update(void)
 			Game_Start_Boss_Fight();
 			currentSwarm = 3; //to stop additional swarms from spawing, since we only have swarm 1 and swarm 2
 			Wave_Init();
+		}
+
+		if (shootSoundTimer > 0.0f)
+		{
+			shootSoundTimer -= CP_System_GetDt();
+		}
+
+		if (explosionSoundTimer > 0.0f)
+		{
+			explosionSoundTimer -= CP_System_GetDt();
 		}
 
 		Swarm_Update(CP_Vector_Set(playerX, playerY));
@@ -814,5 +877,13 @@ void Game_Update(void)
 
 	void Game_Exit(void)
 	{
+		CP_Sound_StopGroup(CP_SOUND_GROUP_SFX);
 
+		CP_Sound_Free(shootSound);
+		CP_Sound_Free(explosionSound);
+		CP_Sound_Free(hurtSound);
+
+		shootSound = NULL;
+		explosionSound = NULL;
+		hurtSound = NULL;
 	}
