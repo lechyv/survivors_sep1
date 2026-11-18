@@ -5,7 +5,7 @@
 #include "game.h"       // Game_Init/Update/Exit
 #include "utils.h"      // IsAreaClicked
 
-#define CONTROLS_ROW_COUNT 6
+#define CONTROLS_ROW_COUNT 5
 #define CONTROLS_FIRST_ROW_Y 0.30f   //UI: first row is 30% down the screen
 #define CONTROLS_ROW_GAP 0.08f       //UI: each next row is 8% lower
 #define CONTROLS_TEXT_GAP 40.0f      //UI: space between the key text and its description
@@ -18,7 +18,7 @@ static const char* controlKeys[CONTROLS_ROW_COUNT] = {
 	"B",
 	"ESC / P",
 	"MOUSE CLICK",
-	"R"
+	
 };
 static const char* controlActions[CONTROLS_ROW_COUNT] = {
 	"MOVE",
@@ -26,7 +26,7 @@ static const char* controlActions[CONTROLS_ROW_COUNT] = {
 	"OPEN / CLOSE SHOP",
 	"PAUSE / RESUME",
 	"BUY / SELL IN SHOP",
-	"RESTART (END SCREENS)"
+	
 };
 
 void Controls_Init(void)
