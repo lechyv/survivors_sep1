@@ -10,7 +10,7 @@ They only reset when a new game starts.
 #define BUFF_KILLS_PER_BUFF 10
 
 //each buff multiplies damage by this (1.10 = +10% of the current damage)
-#define BUFF_DAMAGE_STEP 1.10f
+#define BUFF_DAMAGE_STEP 1.05f
 
 //reset kills to 0 and damage back to normal (x1.0)
 //called once in Game_Init
