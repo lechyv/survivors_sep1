@@ -442,7 +442,7 @@
 	#define rocket_speed 300.0f			//Speed of rockets in pixels per second
 	#define rocket_radius 8.0f			//Radius of each rocket
 	#define rocket_damage 30.0f			//Damage dealt by each rocket explosion
-	#define rocket_AOE_radius 70.0f		//Radius of the rocket's explosion
+	#define rocket_AOE_radius 180.0f		//Radius of the rocket's explosion
 	#define rocket_lifetime 3.5f		//Seconds before a rocket disappears
 	#define AOE_duration 0.25f			//Duration of the AOE effect in seconds
 	#define rocket_drone_range 350.0f	//Maximum distance for detecting targets
@@ -787,6 +787,11 @@ void Game_Update(void)
 					Game_Start_Next_Swarm();
 				}
 			}
+		}
+
+		if (CP_Input_KeyTriggered(KEY_PERIOD))
+		{
+			Coins_Add(100);   //DEBUG: gain 100 coins instantly
 		}
 
 		//temporary button to start boss fight
