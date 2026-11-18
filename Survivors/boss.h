@@ -11,3 +11,9 @@ float boss_get_collision_damage(float x, float y, float radius);
 void boss_reset(void);
 #define boss_health_max 1200.0f
 extern int bossActive;
+
+void boss_bullets_reset(void);
+void boss_fire_burst(void);
+void boss_bullets_update(void);
+void boss_bullets_draw(void);
+float boss_bullets_check_if_hit(float x, float y, float radius);

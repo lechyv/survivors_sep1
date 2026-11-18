@@ -36,6 +36,155 @@ int bossState;		//Current action of the boss (0 = chasing, 1 = locking on, 2 = d
 CP_Image bossImage;        //boss picture (loaded only once)
 int bossImageLoaded = 0;   //1 once the picture is loaded
 
+//Constants for the boss's bullet attack
+#define max_boss_bullets 96
+#define boss_burst_bullets 20
+#define boss_bullet_speed 180.0f
+#define boss_bullet_radius 6.0f
+#define boss_bullet_damage 10.0f
+#define boss_bullet_lifetime 4.0f
+#define boss_burst_interval 2.5f
+#define boss_burst_warning_time 0.8f
+#define boss_burst_dash_delay 1.0f
+
+//Timers for the bullet attack
+float bossBurstTimer;
+float bossBurstWarningTimer;
+
+//Arrays for the boss's bullets
+int bossBulletActive[max_boss_bullets];
+float bossBulletX[max_boss_bullets];
+float bossBulletY[max_boss_bullets];
+float bossBulletXv[max_boss_bullets];
+float bossBulletYv[max_boss_bullets];
+float bossBulletAge[max_boss_bullets];
+
+//Function to clear all boss bullets
+void boss_bullets_reset(void)
+{
+	for (int i = 0; i < max_boss_bullets; i++)
+	{
+		bossBulletActive[i] = 0; //Makes the bullet inactive
+		bossBulletAge[i] = 0.0f; //Resets the bullet's age
+	}
+}
+
+//Function to fire a ring of bullets around the boss
+void boss_fire_burst(void)
+{
+	for (int bullet = 0; bullet < boss_burst_bullets; bullet++)
+	{
+		//Divides a full circle into evenly spaced directions
+		float angle = (2.0f * 3.14159265f * bullet) / boss_burst_bullets;
+
+		float directionX = cosf(angle);
+		float directionY = sinf(angle);
+
+		for (int i = 0; i < max_boss_bullets; i++)
+		{
+			if (bossBulletActive[i] == 0)
+			{
+				bossBulletActive[i] = 1; //Activates an unused bullet
+
+				bossBulletX[i] = bossX; //Starts the bullet at the boss
+				bossBulletY[i] = bossY;
+
+				bossBulletXv[i] = directionX * boss_bullet_speed;
+				bossBulletYv[i] = directionY * boss_bullet_speed;
+
+				bossBulletAge[i] = 0.0f;
+
+				break; //Stops searching after creating this bullet
+			}
+		}
+	}
+}
+
+//Function to move boss bullets and remove expired bullets
+void boss_bullets_update(void)
+{
+	float dt = CP_System_GetDt();
+
+	for (int i = 0; i < max_boss_bullets; i++)
+	{
+		if (bossBulletActive[i] == 0)
+		{
+			continue; //Skips inactive bullets
+		}
+
+		bossBulletX[i] = bossBulletX[i] + bossBulletXv[i] * dt;
+		bossBulletY[i] = bossBulletY[i] + bossBulletYv[i] * dt;
+
+		bossBulletAge[i] = bossBulletAge[i] + dt;
+
+		if (bossBulletAge[i] >= boss_bullet_lifetime)
+		{
+			bossBulletActive[i] = 0; //Removes the expired bullet
+			continue;
+		}
+
+		if (bossBulletX[i] < -boss_bullet_radius ||
+			bossBulletX[i] > world_width + boss_bullet_radius ||
+			bossBulletY[i] < -boss_bullet_radius ||
+			bossBulletY[i] > world_height + boss_bullet_radius)
+		{
+			bossBulletActive[i] = 0; //Removes bullets outside the world
+		}
+	}
+}
+
+//Function to draw active boss bullets
+void boss_bullets_draw(void)
+{
+	CP_Settings_NoStroke();
+
+	for (int i = 0; i < max_boss_bullets; i++)
+	{
+		if (bossBulletActive[i] == 0)
+		{
+			continue; //Skips inactive bullets
+		}
+
+		CP_Settings_Fill(CP_Color_Create(255, 100, 30, 255));
+		CP_Graphics_DrawCircle(bossBulletX[i], bossBulletY[i], boss_bullet_radius * 2.0f);
+
+		CP_Settings_Fill(CP_Color_Create(255, 240, 180, 255));
+		CP_Graphics_DrawCircle(bossBulletX[i], bossBulletY[i], boss_bullet_radius);
+	}
+}
+
+//Function to return damage from boss bullets touching the player
+float boss_bullets_check_if_hit(float x, float y, float radius)
+{
+	if (bossActive == 0)
+	{
+		return 0.0f; //An inactive boss cannot deal bullet damage
+	}
+
+	float totalDamage = 0.0f;
+	float radius_sum = radius + boss_bullet_radius;
+
+	for (int i = 0; i < max_boss_bullets; i++)
+	{
+		if (bossBulletActive[i] == 0)
+		{
+			continue;
+		}
+
+		float dx = bossBulletX[i] - x;
+		float dy = bossBulletY[i] - y;
+		float distanceSquared = (dx * dx) + (dy * dy);
+
+		if (distanceSquared <= radius_sum * radius_sum)
+		{
+			bossBulletActive[i] = 0; //Removes the bullet after hitting
+			totalDamage = totalDamage + boss_bullet_damage;
+		}
+	}
+
+	return totalDamage;
+}
+
 //Function to start the boss fight and set the boss's starting values - Brandon
 void boss_init(void)
 {
@@ -61,6 +210,11 @@ void boss_init(void)
 	bossDashY = 0.0f;
 
 	bossSummonTimer = boss_summon_interval;	//Sets the time until the first summon
+
+	bossBurstTimer = boss_burst_interval;
+	bossBurstWarningTimer = 0.0f;
+
+	boss_bullets_reset();
 }
 
 //Function to update the boss's phase, summoning, movement and dash - Brandon
@@ -105,6 +259,19 @@ void boss_update(CP_Vector playerPos)
 			Swarm_SpawnTank(bossX, bossY + 100.0f);		//Spawns a tank enemy below the boss
 			bossSummonTimer = boss_summon_interval;		//Resets the summon timer
 
+		}
+	}
+
+	boss_bullets_update(); //Moves existing bullets during every boss state
+
+	if (bossPhase == 2)
+	{
+		bossBurstTimer = bossBurstTimer - dt;
+
+		if (bossBurstTimer <= 0.0f && bossState == 0)
+		{
+			bossState = 3; //Stops chasing and prepares the bullet attack
+			bossBurstWarningTimer = boss_burst_warning_time;
 		}
 	}
 
@@ -179,6 +346,20 @@ void boss_update(CP_Vector playerPos)
 			bossDashTimer = current_boss_dash_cooldown;	//Restarts the dash cooldown
 		}
 	}
+	else if (bossState == 3)
+	{
+		bossBurstWarningTimer = bossBurstWarningTimer - dt;
+
+		if (bossBurstWarningTimer <= 0.0f)
+		{
+			boss_fire_burst(); //Fires bullets in all directions
+
+			bossBurstTimer = boss_burst_interval;
+			bossState = 0; //Returns the boss to chasing
+
+			bossDashTimer = boss_burst_dash_delay; //Waits before the next dash
+		}
+	}
 }
 
 //Function to draw the boss, with its colour showing its current state - Brandon
@@ -187,6 +368,27 @@ void boss_draw(void)
 	if (bossActive == 0)	//If statement to check if the boss is inactive
 	{
 		return;	//Exits the function without drawing the boss
+	}
+
+	boss_bullets_draw();
+
+	if (bossState == 3)
+	{
+		//Alternates between a bright and dim warning
+		int flash = (int)(bossBurstWarningTimer * 10.0f);
+
+		CP_Settings_NoStroke();
+
+		if (flash % 2 == 0)
+		{
+			CP_Settings_Fill(CP_Color_Create(255, 80, 220, 200));
+		}
+		else
+		{
+			CP_Settings_Fill(CP_Color_Create(255, 80, 220, 80));
+		}
+
+		CP_Graphics_DrawCircle(bossX, bossY, boss_size * 1.6f);
 	}
 
 	CP_Settings_NoStroke();	//Prevents an outline from appearing around the boss
@@ -240,6 +442,7 @@ void boss_take_damage(float damage)
 	{
 		bossHealth = 0.0f;	//Sets the boss's health to 0 to prevent it from going negative
 		bossActive = 0;		//Sets the boss to inactive, which ends the boss fight
+		boss_bullets_reset(); //Removes remaining bullets when boss dies.
 		return;				//Exits the function as the boss is already dead
 	}
 
@@ -247,6 +450,14 @@ void boss_take_damage(float damage)
 	{
 		bossPhase = 2;	//Switches the boss to phase 2
 		bossSummonTimer = 0.0f;	//Makes the boss summon enemies immediately when phase 2 starts
+	}
+
+	if (bossHealth <= boss_health_max / 2.0f && bossPhase == 1)
+	{
+		bossPhase = 2;
+		bossSummonTimer = 0.0f;
+
+		bossBurstTimer = boss_burst_interval; //Waits before the first bullet attack
 	}
 }
 
@@ -324,4 +535,8 @@ int boss_get_target(float x, float y, float range, CP_Vector* target)
 void boss_reset(void)
 {
 	bossActive = 0;	//Sets the boss to inactive
+	bossBurstTimer = boss_burst_interval;
+	bossBurstWarningTimer = 0.0f;
+
+	boss_bullets_reset();
 }

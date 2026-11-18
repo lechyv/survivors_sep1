@@ -819,7 +819,8 @@ void Game_Update(void)
 			float contactDamage = Swarm_NumOfEnemiesTouching(playerX, playerY, player_radius) * enemy_contact_damage;
 			float projectileDamage = Swarm_ProjectilesHitPlayer(playerX, playerY, player_radius);
 			float bossDamage = boss_get_collision_damage(playerX, playerY, player_radius);
-			combat_damage_player(Diff_ScaleDamageToPlayer(contactDamage + projectileDamage + bossDamage));
+			float bossBulletDamage = boss_bullets_check_if_hit(playerX, playerY, player_radius);
+			combat_damage_player(Diff_ScaleDamageToPlayer(contactDamage + projectileDamage + bossDamage + bossBulletDamage));
 			// coin drop: kill enemies touching the player, drop a coin where each died,
 			// then pick up any coin the player is touching
 			Coins_Update(playerX, playerY, player_radius);
