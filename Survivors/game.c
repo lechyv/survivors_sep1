@@ -709,7 +709,7 @@
 		dashSpeed = 20.0f;
 		dashDistance = 150.0f;
 		dashRemaining = 0.0f;
-		dashCooldown = 2.0f;
+		dashCooldown = 0.5f;
 		dashCooldownTimer = 0.0f;
 	
 	//PLEASE DONT DELETE THIS UNLESS YOU ARE DONE WITH DIFFICULTY HANDLING
