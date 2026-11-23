@@ -19,6 +19,8 @@
 	CP_Sound shootSound = NULL;
 	CP_Sound explosionSound = NULL;
 	CP_Sound hurtSound = NULL;
+	CP_Sound bossMusic = NULL;
+	CP_Sound swarmMusic = NULL;
 
 	float shootSoundTimer = 0.0f;
 	float explosionSoundTimer = 0.0f;
@@ -34,7 +36,7 @@
 	/*Player state*/
 	float playerX, playerY;     // x,y position of player
 	float speed;                // player speed
-#define player_radius 20.0f	    
+	#define player_radius 20.0f	    
 	float player_rotation;       //rotation angle (degrees) to determine dash direction
 
 	float dashSpeed;            // speed while dashing
@@ -649,6 +651,11 @@
 	{
 		swarm_auto_spawn = 0;	//Stops new swarm enemies from spawning
 		boss_init();			//Initializes the boss and starts the boss fight
+		CP_Sound_StopGroup(CP_SOUND_GROUP_MUSIC);
+		if (bossMusic != NULL)
+		{
+			CP_Sound_PlayAdvanced(bossMusic, 0.30f, 1.0f, 1, CP_SOUND_GROUP_MUSIC);
+		}
 	}
 
 	//swarms: called when swarm timer reaches 0.
@@ -823,7 +830,13 @@
 	shootSound = CP_Sound_Load("Assets/Audio/shoot.ogg");
 	explosionSound = CP_Sound_Load("Assets/Audio/explosion.ogg");
 	hurtSound = CP_Sound_Load("Assets/Audio/hurt.ogg");
+	bossMusic = CP_Sound_LoadMusic("Assets/Audio/boss_music.wav");
+	swarmMusic = CP_Sound_LoadMusic("Assets/Audio/swarm_music.mp3");
 
+	if (swarmMusic != NULL)
+	{
+		CP_Sound_PlayAdvanced(swarmMusic, 0.25f, 1.0f, 1, CP_SOUND_GROUP_MUSIC);
+	}
 	shootSoundTimer = 0.0f;
 	explosionSoundTimer = 0.0f;
 }
@@ -912,6 +925,7 @@ void Game_Update(void)
 			if (currentSwarm == 3 && bossActive == 0 && player_health > 0.0f && GameOver_IsActive() == 0)	//If statement to check if the boss is defeated and the player is still alive - Brandon
 			{
 				win_start();	//Starts the victory screen - Brandon
+				CP_Sound_StopGroup(CP_SOUND_GROUP_MUSIC);
 			}
 		}
 
@@ -948,6 +962,7 @@ void Game_Update(void)
 		if (player_health <= 0.0f && GameOver_IsActive() == 0 && win_active() == 0)
 		{
 			GameOver_Start();
+			CP_Sound_StopGroup(CP_SOUND_GROUP_MUSIC);
 		}
 		GameOver_Draw(coinCount, runTime);  
 		win_draw(coinCount, runTime);
@@ -971,5 +986,17 @@ void Game_Update(void)
 
 		shootSound = NULL;
 		explosionSound = NULL;
-		hurtSound = NULL;
+		CP_Sound_StopGroup(CP_SOUND_GROUP_MUSIC);
+
+		if (swarmMusic != NULL)
+		{
+			CP_Sound_Free(swarmMusic);
+			swarmMusic = NULL;
+		}
+
+		if (bossMusic != NULL)
+		{
+			CP_Sound_Free(bossMusic);
+			bossMusic = NULL;
+		}
 	}
