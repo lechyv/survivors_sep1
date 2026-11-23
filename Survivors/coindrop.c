@@ -2,7 +2,10 @@
 #include <stdio.h> // for printf
 #include "cprocessing.h"
 #include "coin-drop.h"
+#include <math.h>
 
+#define COIN_MAGNET_RADIUS 500.0f
+#define COIN_MAGNET_SPEED  700.0f
 
 #define MAX_COINS 128 //Max coins on ground at once
 #define COIN_DIAMETER 14.0f //size of coin (pixel)
@@ -69,27 +72,35 @@ void Coins_Drop(float x, float y)
 void Coins_Update(float playerX, float playerY, float playerRadius)
 {
 	float dt = CP_System_GetDt();
+	float touchDistance = playerRadius + COIN_DIAMETER * 0.5f;
+	float moveDistance = COIN_MAGNET_SPEED * dt;
 
-	// player and coin touch when the distance between their centers is at most the sum of their radii (compared squared, so no sqrt)
-	float touchDistance = 500.0f;
-
-	int i = 0;
-	while (i < MAX_COINS)
+	for (int i = 0; i < MAX_COINS; i++)
 	{
-		if (coinActive[i] == 1)
+		if (coinActive[i] == 0)
+			continue;
+
+		coinAge[i] += dt;
+		if (coinAge[i] < COIN_PICKUP_DELAY)
+			continue;
+
+		float dx = playerX - coinX[i];
+		float dy = playerY - coinY[i];
+		float distance = sqrtf(dx * dx + dy * dy);
+
+		if (distance > COIN_MAGNET_RADIUS)
+			continue;
+
+		if (distance <= touchDistance + moveDistance)
 		{
-			coinAge[i] += dt;
-
-			float dx = coinX[i] - playerX;
-			float dy = coinY[i] - playerY;
-
-			if (coinAge[i] >= COIN_PICKUP_DELAY && dx * dx + dy * dy <= touchDistance * touchDistance)
-			{
-				coinActive[i] = 0;   // remove coin from the ground
-				coinCount += 1;      // and add it to the player's coins
-			}
+			coinActive[i] = 0;
+			coinCount += 1;
 		}
-		i += 1;
+		else
+		{
+			coinX[i] += (dx / distance) * moveDistance;
+			coinY[i] += (dy / distance) * moveDistance;
+		}
 	}
 }
 

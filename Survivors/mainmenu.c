@@ -7,6 +7,7 @@
 
 int menuDifficulty = difficulty_normal;   
 CP_Font menuFont;
+CP_Sound menuMusic = NULL;
 
 void menu_draw_button(float x, float y, float w, float h, const char* label,
 	CP_Color color, CP_Color hoverColor)
@@ -35,8 +36,15 @@ void menu_draw_button(float x, float y, float w, float h, const char* label,
 void Main_Menu_Init(void)
 {
 	CP_System_SetWindowTitle("Survivor");
-	menuFont = CP_Font_Load("Assets/press-start.ttf");	
+	menuFont = CP_Font_Load("Assets/press-start.ttf");
 	CP_Font_Set(menuFont);
+
+	menuMusic = CP_Sound_LoadMusic("Assets/Audio/menu_music.wav");
+
+	if (menuMusic != NULL)
+	{
+		CP_Sound_PlayAdvanced(menuMusic, 0.30f, 1.0f, 1, CP_SOUND_GROUP_MUSIC);
+	}
 }
 
 void Main_Menu_Update(void)
@@ -84,5 +92,10 @@ void Main_Menu_Update(void)
 
 void Main_Menu_Exit(void)
 {
-
+	if (menuMusic != NULL)
+	{
+		CP_Sound_StopGroup(CP_SOUND_GROUP_MUSIC);
+		CP_Sound_Free(menuMusic);
+		menuMusic = NULL;
+	}
 }
